@@ -1,6 +1,6 @@
 *
-!./Assets
-./Assets/ShaderlabVS
-./Assets/TextMesh Pro
-.vs
+.*
+!/Assets
+/Assets/ShaderlabVS/
+/Assets/TextMesh Pro/
 !.gitignore
