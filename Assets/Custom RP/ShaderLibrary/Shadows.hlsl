@@ -130,9 +130,9 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
     return 1.0;
   #endif
     float shadow;
-    if (directional.strength * global.strength <= 0.0 
+    if (directional.strength * global.strength <= 0.0)
     {
-        shadow = GetBakedShadow(global.shadowMask, directional.strength);
+        shadow = GetBakedShadow(global.shadowMask, abs(directional.strength));
     }
     else 
     {

@@ -50,7 +50,7 @@ public class Shadows
 
     static string[] cascadeBlendKeywords = { "_CASCADE_BLEND_SOFT", "_CASCADE_BLEND_DITHER" };
 
-	static string[] shadowMaskKeywords ={"_SHADOW_MASK_DISTANCE"};
+	static string[] shadowMaskKeywords ={ "_SHADOW_MASK_ALWAYS", "_SHADOW_MASK_DISTANCE" };
 	bool useShadowMask;
 	// 设置着色器关键字
 	void SetKeywords(string[] keywords, int enabledIndex)
@@ -72,13 +72,15 @@ public class Shadows
     }
     public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
-        if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount && light.shadows != LightShadows.None && light.shadowStrength > 0f &&
-            cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+        if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount && light.shadows != LightShadows.None && light.shadowStrength > 0f )
         {
 			//如果使用了ShadowMask
 			LightBakingOutput lightBaking = light.bakingOutput;
 			if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask) {
 				useShadowMask = true;
+			}
+			if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b)) {
+				return new Vector3(-light.shadowStrength, 0f, 0f);
 			}
 			ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight

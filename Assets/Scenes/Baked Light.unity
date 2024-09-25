@@ -96,7 +96,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 78e4e5bbb9cc3824d946484e93079982, type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: b15b86961b2d8464c8acc9ab961c81a5, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -134,7 +134,6 @@ GameObject:
   - component: {fileID: 13496620}
   - component: {fileID: 13496619}
   - component: {fileID: 13496618}
-  - component: {fileID: 13496617}
   - component: {fileID: 13496621}
   m_Layer: 0
   m_Name: Sphere (48)
@@ -152,24 +151,12 @@ Transform:
   m_GameObject: {fileID: 13496615}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.6, y: 0.5, z: -4.35}
+  m_LocalPosition: {x: -5.13, y: 1.2, z: -3.53}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1070353481}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &13496617
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 13496615}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 12b34fac330b345eea0c6df7126deddc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!135 &13496618
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -219,7 +206,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
+  m_ReceiveGI: 2
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1517,7 +1504,7 @@ Transform:
   m_GameObject: {fileID: 207770568}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.037818722, z: -0, w: 0.9992846}
-  m_LocalPosition: {x: -5.5299997, y: 0.5, z: 1.3299997}
+  m_LocalPosition: {x: -6.44, y: 0.5, z: 0.68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1557,7 +1544,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!259 &243104515
 LightProbeProxyVolume:
   m_ObjectHideFlags: 0
@@ -1764,7 +1751,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &293864717
 Transform:
   m_ObjectHideFlags: 0
@@ -2114,7 +2101,7 @@ Transform:
   m_GameObject: {fileID: 421942125}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.75, y: 0.5, z: 0.07999998}
+  m_LocalPosition: {x: 6.13, y: 0.5, z: -1.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2907,7 +2894,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &498221825
 Transform:
   m_ObjectHideFlags: 0
@@ -4146,7 +4133,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -4185,7 +4172,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 4.54e-42, y: 0, z: 0, w: -0.006134335}
+  m_BoundingSphereOverride: {x: 0, y: 6e-44, z: 3.4e-44, w: 3.285e-42}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -5585,7 +5572,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &913442891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6468,7 +6455,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1117054696
 Transform:
   m_ObjectHideFlags: 0
@@ -7604,7 +7591,7 @@ Transform:
   m_GameObject: {fileID: 1397499702}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.6495302, z: -0, w: 0.76033586}
-  m_LocalPosition: {x: -4.03, y: 0.5, z: 0.16}
+  m_LocalPosition: {x: -3.22, y: 0.5, z: -5.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9088,7 +9075,7 @@ Transform:
   m_GameObject: {fileID: 1645389705}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.69, y: 0.5, z: -2.96}
+  m_LocalPosition: {x: -1.69, y: 0.5, z: 0.29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9155,7 +9142,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
+  m_ReceiveGI: 2
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -9214,7 +9201,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1653347228
 Transform:
   m_ObjectHideFlags: 0
@@ -9496,7 +9483,7 @@ Transform:
   m_GameObject: {fileID: 1720865115}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -8.15, y: 0.5, z: -0.41}
+  m_LocalPosition: {x: -7.883, y: 0.5, z: -0.623}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9758,7 +9745,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1782004218
 Transform:
   m_ObjectHideFlags: 0
@@ -10165,7 +10152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1844502441
 Transform:
   m_ObjectHideFlags: 0
@@ -11150,7 +11137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &2035396380
 BoxCollider:
   m_ObjectHideFlags: 0
