@@ -32,8 +32,9 @@ CBUFFER_START(_CustomShadows)
 	float4x4 _DirectionalShadowMatrices[MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT* MAX_CASCADE_COUNT];
 CBUFFER_END
 
+//当前方向光的阴影数据
 struct DirectionalShadowData {
-    float strength;
+    float strength; //方向光强度
     int tileIndex;
 	float normalBias;
     int shadowMaskChannel;
@@ -43,13 +44,15 @@ float SampleDirectionalShadowAtlas(float3 positionSTS) {
     return SAMPLE_TEXTURE2D_SHADOW(_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS);
 }
 
+//存储烘焙阴影数据
 struct ShadowMask
 {
-    bool always;
-    bool distance;
-    float4 shadows;
+    bool always;//标记了 showMask 模式
+    bool distance;// 标记 是否启用 Distance Shadow Mask
+    float4 shadows;//存储烘焙的阴影数据。
     
 };
+//表面的阴影数据
 struct ShadowData {
     int cascadeIndex;
     float strength;
@@ -78,6 +81,7 @@ float FilterDirectionalShadow(float3 positionSTS)
     return SampleDirectionalShadowAtlas(positionSTS);
 #endif
 }
+//实时阴影采样
 float GetCascadedShadow(DirectionalShadowData directional, ShadowData global, Surface surfaceWS) 
 {
     //计算法线偏差

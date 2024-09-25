@@ -67,6 +67,7 @@ public partial class CameraRenderer {
 		var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings) {
 			enableDynamicBatching = useDynamicBatching,
 			enableInstancing = useGPUInstancing,
+			//发送到GPU的数据
 			perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume
 
 		};

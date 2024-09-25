@@ -50,8 +50,10 @@ public class Shadows
 
     static string[] cascadeBlendKeywords = { "_CASCADE_BLEND_SOFT", "_CASCADE_BLEND_DITHER" };
 
+	//关键字数组，控制是否使用阴影蒙版
 	static string[] shadowMaskKeywords ={ "_SHADOW_MASK_ALWAYS", "_SHADOW_MASK_DISTANCE" };
-	bool useShadowMask;
+	
+	bool useShadowMask; //根据变量值，确定是否使用阴影蒙版，是否启用关键字
 	// 设置着色器关键字
 	void SetKeywords(string[] keywords, int enabledIndex)
     {
@@ -124,6 +126,7 @@ public class Shadows
             buffer.GetTemporaryRT(dirShadowAtlasId, 1, 1, 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
         }
 		buffer.BeginSample(bufferName);
+		//是否使用阴影蒙版
 		SetKeywords(shadowMaskKeywords, useShadowMask ? QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 : -1);
 		buffer.EndSample(bufferName);
 		ExecuteBuffer();

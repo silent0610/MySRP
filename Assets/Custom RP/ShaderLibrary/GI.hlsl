@@ -74,12 +74,14 @@ float3 SampleLightProbe(Surface surfaceWS) {
         }
     #endif
 }
+
 GI GetGI(float2 lightMapUV, Surface surfaceWS) {
     GI gi;
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;
     gi.shadowMask.shadows = 1.0;
+    //shadowMask归属于烘焙，故存储于GI中
     #if defined(_SHADOW_MASK_ALWAYS)
         gi.shadowMask.always = true;
         gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);

@@ -23,6 +23,7 @@ int GetDirectionalLightCount() {
 float FadedShadowStrength(float distance, float scale, float fade) {
     return saturate((1.0 - distance * scale) * fade);
 }
+//暂时不清楚这个函数的作用
 ShadowData GetShadowData(Surface surfaceWS) {
     ShadowData data;
     data.cascadeBlend = 1.0;
