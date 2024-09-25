@@ -26,6 +26,7 @@ float FadedShadowStrength(float distance, float scale, float fade) {
 ShadowData GetShadowData(Surface surfaceWS) {
     ShadowData data;
     data.cascadeBlend = 1.0;
+    data.shadowMask.always = false;
     data.shadowMask.distance = false;
     data.shadowMask.shadows = 1.0;
     data.strength = FadedShadowStrength(
@@ -67,6 +68,7 @@ DirectionalShadowData GetDirectionalShadowData(int lightIndex, ShadowData shadow
     data.strength = _DirectionalLightShadowData[lightIndex].x ;
     data.tileIndex = _DirectionalLightShadowData[lightIndex].y + shadowData.cascadeIndex;
     data.normalBias = _DirectionalLightShadowData[lightIndex].z;
+    data.shadowMaskChannel = _DirectionalLightShadowData[lightIndex].w;
     return data;
 }
 Light GetDirectionalLight(int index, Surface surfaceWS, ShadowData shadowData) {
