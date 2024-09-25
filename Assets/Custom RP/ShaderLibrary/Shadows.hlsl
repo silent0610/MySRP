@@ -103,13 +103,22 @@ float GetBakedShadow(ShadowMask mask)
     return shadow;
 }
 
+float GetBakedShadow(ShadowMask mask, float strength) 
+{
+    if (mask.distance) 
+    {
+        return lerp(1.0, GetBakedShadow(mask), strength);
+    }
+    return 1.0;
+}
 //混合烘焙和实时阴影
 float MixBakedAndRealtimeShadows(ShadowData global, float shadow, float strength) 
 {
     float baked = GetBakedShadow(global.shadowMask);
     if (global.shadowMask.distance) 
     {
-        shadow = baked;
+        shadow = lerp(baked, shadow, global.strength);
+        return lerp(1.0, shadow, strength);
     }
     return lerp(1.0, shadow, strength);
 }
@@ -121,14 +130,14 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
     return 1.0;
   #endif
     float shadow;
-    if (directional.strength <= 0.0) 
+    if (directional.strength * global.strength <= 0.0 
     {
-        shadow = 1.0;
+        shadow = GetBakedShadow(global.shadowMask, directional.strength);
     }
     else 
     {
         shadow = GetCascadedShadow(directional, global, surfaceWS);             
-        shadow = lerp(1.0, shadow, directional.strength);
+        shadow = MixBakedAndRealtimeShadows(global, shadow, directional.strength);  
     }       
     return shadow;
 }
