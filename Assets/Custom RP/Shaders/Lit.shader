@@ -29,7 +29,6 @@ Shader "Custom RP/Lit" {
             ZWrite [_ZWrite]
             HLSLPROGRAM
             //声明关键字
-            //test
             #pragma target 3.5
             #pragma multi_compile _ _SHADOW_MASK_DISTANCE  _SHADOW_MASK_ALWAYS
             #pragma multi_compile _ LIGHTMAP_ON
