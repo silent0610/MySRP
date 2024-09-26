@@ -30,6 +30,7 @@ float2 TransformBaseUV(float2 baseUV)
     return baseUV * baseST.xy + baseST.zw;
 }
  
+ //从缓冲区获取基础颜色，再采样贴图，将贴图颜色乘以基础颜色
 float4 GetBase(float2 baseUV) 
 {
     float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUV);

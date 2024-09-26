@@ -15,29 +15,33 @@ struct BRDF {
     float perceptualRoughness;
     float fresnel;
 };
-
+//基于BRDF的间接照明
 float3 IndirectBRDF (Surface surface, BRDF brdf, float3 diffuse, float3 specular) 
 {
     float fresnelStrength =surface.fresnelStrength * Pow4(1.0 - saturate(dot(surface.normal, surface.viewDirection)));
 
-    float3 reflection = specular * lerp(brdf.specular, brdf.fresnel, fresnelStrength);
+    float3 reflection = specular * lerp(brdf.specular, brdf.fresnel, fresnelStrength);//根据强度在BRDF镜面颜色和菲涅耳颜色之间进行插值
     reflection /= (brdf.roughness * brdf.roughness + 1.0);
     return diffuse * brdf.diffuse + reflection;
 }
+//双向反射方程
 BRDF GetBRDF(Surface surface, bool applyAlphaToDiffuse = false) {
     BRDF brdf;
     float oneMinusReflectivity = OneMinusReflectivity(surface.metallic);
-    brdf.diffuse = surface.color * oneMinusReflectivity;
+    brdf.diffuse = surface.color * oneMinusReflectivity; //根据金属度计算表面的BRDF漫反射光能量（颜色）
+    
+    //预乘alpha
     if (applyAlphaToDiffuse) {
         brdf.diffuse *= surface.alpha;
     }
     
-    //brdf.specular = surface.color - brdf.diffuse;
-    brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);//等价
-    //光滑度转实际粗糙度
+    brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);//表面的BRDF高光能量（颜色）
+   
+   //光滑度转实际粗糙度
     brdf.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
     brdf.roughness = PerceptualRoughnessToRoughness(brdf.perceptualRoughness);
-    brdf.fresnel = saturate(surface.smoothness + 1.0 - oneMinusReflectivity);
+    
+    brdf.fresnel = saturate(surface.smoothness + 1.0 - oneMinusReflectivity);//表面的菲涅尔反射强度
     return brdf;
 }
 

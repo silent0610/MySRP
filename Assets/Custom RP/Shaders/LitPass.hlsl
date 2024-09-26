@@ -28,14 +28,17 @@ struct Varyings {
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 Varyings LitPassVertex(Attributes input) {
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
+    Varyings output; 
+    //传递GPU实例化ID
+    UNITY_SETUP_INSTANCE_ID(input);  
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+    // 传递 GI_DATA
     TRANSFER_GI_DATA(input, output);
+    //计算位置
     output.positionWS = TransformObjectToWorld(input.positionOS);
     output.positionCS = TransformWorldToHClip(output.positionWS);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-    float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
+    //贴图位置
     output.baseUV = TransformBaseUV(input.baseUV);
     
     return output;
@@ -44,15 +47,13 @@ Varyings LitPassVertex(Attributes input) {
 float4 LitPassFragment(Varyings input) : SV_TARGET {
     
     UNITY_SETUP_INSTANCE_ID(input);
-    //ClipLOD(input.positionCS,unity_LODFade.x);
-
-    float4 base = GetBase(input.baseUV);
     ClipLOD(input.positionCS.xy, unity_LODFade.x);
     
-    Surface surface;
-    surface.position = input.positionWS;
-    surface.normal = normalize(input.normalWS);//asd
+    float4 base = GetBase(input.baseUV);//贴图颜色乘以基础颜色
 
+    Surface surface;
+    surface.position = input.positionWS; //世界坐标
+    surface.normal = normalize(input.normalWS); //表面法线
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
     surface.depth = -TransformWorldToView(input.positionWS).z;
     surface.color = base.rgb;
@@ -68,7 +69,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
         brdf = GetBRDF(surface);
     #endif
     GI gi = GetGI(GI_FRAGMENT_DATA(input),surface,brdf);
-    float3 color = GetLighting(surface, brdf, gi);
+    float3 color = GetLighting(surface, brdf, gi); //着色，包括直接光，间接光
     color += GetEmission(input.baseUV);
     //float3 color = GetLighting(surface, brdf);
     

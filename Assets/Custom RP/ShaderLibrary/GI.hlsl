@@ -17,7 +17,6 @@ SAMPLER(samplerunity_SpecCube0);
     #define GI_ATTRIBUTE_DATA float2 lightMapUV:TEXCOORD1;
     #define GI_VARYINGS_DATA float2 lightMapUV:VAR_LIGHT_MAP_UV;
     #define TRANSFER_GI_DATA(input, output) output.lightMapUV = input.lightMapUV * unity_LightmapST.xy + unity_LightmapST.zw;
-
     #define GI_FRAGMENT_DATA(input) input.lightMapUV
 #else
     //否则这些宏都应为空
@@ -39,6 +38,7 @@ struct GI {
 //采样环境立方体纹理
 float3 SampleEnvironment (Surface surfaceWS,BRDF brdf) {
     float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
+    //计算给定感知粗糙度的正确mip，故需要brdf作为变量传递粗糙度
     float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(
 		unity_SpecCube0, samplerunity_SpecCube0, uvw, mip
@@ -94,14 +94,17 @@ float3 SampleLightProbe(Surface surfaceWS) {
     #endif
 }
 
+//全局光照计算
 GI GetGI(float2 lightMapUV, Surface surfaceWS,BRDF brdf) {
     GI gi;
+    //采样光照贴图和光照探针
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+    //采样环境立方体纹理
     gi.specular = SampleEnvironment(surfaceWS,brdf);
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;
     gi.shadowMask.shadows = 1.0;
-    //shadowMask归属于烘焙，故存储于GI中
+    //采样阴影蒙版（烘焙的阴影）
     #if defined(_SHADOW_MASK_ALWAYS)
         gi.shadowMask.always = true;
         gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
