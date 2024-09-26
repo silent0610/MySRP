@@ -16,7 +16,7 @@ public partial class CameraRenderer {
 
 	Lighting lighting = new Lighting();
 
-	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing,ShadowSettings shadowSettings) {
+	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings) {
 		this.context = context;
 		this.camera = camera;
 		PrepareBuffer();
@@ -26,7 +26,7 @@ public partial class CameraRenderer {
 		}
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
-		lighting.Setup(context, cullingResults,shadowSettings);
+		lighting.Setup(context, cullingResults, shadowSettings);
 		buffer.EndSample(SampleName);
 		Setup();
 		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing);
@@ -68,7 +68,8 @@ public partial class CameraRenderer {
 			enableDynamicBatching = useDynamicBatching,
 			enableInstancing = useGPUInstancing,
 			//发送到GPU的数据
-			perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume
+			perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | PerObjectData.LightProbe
+| PerObjectData.OcclusionProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ReflectionProbes
 
 		};
 		drawingSettings.SetShaderPassName(1, litShaderTagId);

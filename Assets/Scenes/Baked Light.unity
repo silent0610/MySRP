@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 731640766}
-  m_IndirectSpecularColor: {r: 0.18270339, g: 0.22841181, b: 0.30709654, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -152,7 +151,7 @@ Transform:
   m_GameObject: {fileID: 13496615}
   serializedVersion: 2
   m_LocalRotation: {x: 0.0034793923, y: -0, z: -0, w: 0.999994}
-  m_LocalPosition: {x: -0.72, y: 0.382, z: -5.65}
+  m_LocalPosition: {x: 0.61, y: 0.382, z: -5.34}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1140,7 +1139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &163520181
 Transform:
   m_ObjectHideFlags: 0
@@ -1150,7 +1149,7 @@ Transform:
   m_GameObject: {fileID: 163520180}
   serializedVersion: 2
   m_LocalRotation: {x: 0.54802346, y: -0.025942719, z: 0.22347179, w: 0.8056411}
-  m_LocalPosition: {x: -3.73, y: 0.5, z: -5.42}
+  m_LocalPosition: {x: -3.53, y: 0.5, z: -5.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1254,7 +1253,7 @@ MonoBehaviour:
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
   alphaCutoff: 0.5
-  metallic: 0
+  metallic: 1
   smoothness: 0.5
 --- !u!1 &183028443
 GameObject:
@@ -4092,7 +4091,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 2.2e-44, y: 2.4405384e-30, z: 9.1858e-41, w: 4.591775e-39}
+  m_BoundingSphereOverride: {x: 1.02e-43, y: 1.7e-44, z: 5.602e-42, w: 5.022e-42}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -6809,7 +6808,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!205 &1180622491
 LODGroup:
   m_ObjectHideFlags: 0
@@ -6821,19 +6820,19 @@ LODGroup:
   m_LocalReferencePoint: {x: 1.6600003, y: -4.6318684, z: -3.55}
   m_Size: 3.500001
   m_FadeMode: 1
-  m_AnimateCrossFading: 0
+  m_AnimateCrossFading: 1
   m_LastLODIsBillboard: 0
   m_LODs:
   - screenRelativeHeight: 0.6
-    fadeTransitionWidth: 0
+    fadeTransitionWidth: 0.437
     renderers:
     - renderer: {fileID: 1190781607}
   - screenRelativeHeight: 0.3
-    fadeTransitionWidth: 0
+    fadeTransitionWidth: 0.524
     renderers:
     - renderer: {fileID: 739457163}
   - screenRelativeHeight: 0.1
-    fadeTransitionWidth: 0
+    fadeTransitionWidth: 0.484
     renderers:
     - renderer: {fileID: 2095872343}
   m_Enabled: 1
@@ -6875,7 +6874,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1180910132
 Transform:
   m_ObjectHideFlags: 0
@@ -6885,7 +6884,7 @@ Transform:
   m_GameObject: {fileID: 1180910131}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.51, y: 0.5, z: -4.39}
+  m_LocalPosition: {x: -2.3, y: 0.5, z: -6.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6952,7 +6951,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
+  m_ReceiveGI: 2
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -6989,8 +6988,8 @@ MonoBehaviour:
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
   alphaCutoff: 0.5
-  metallic: 0
-  smoothness: 0.5
+  metallic: 0.667
+  smoothness: 0.378
 --- !u!1 &1190781606
 GameObject:
   m_ObjectHideFlags: 0
@@ -8453,7 +8452,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 1
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1492045086
 Transform:
   m_ObjectHideFlags: 0
@@ -8567,7 +8566,7 @@ MonoBehaviour:
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
   alphaCutoff: 0.5
-  metallic: 0
+  metallic: 0.551
   smoothness: 0.5
 --- !u!1 &1528906237
 GameObject:
@@ -11326,7 +11325,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &1989830246
 Light:
   m_ObjectHideFlags: 0
@@ -11384,7 +11383,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.01524734e+12, y: 6e-44, z: 3.15e-43, w: 3.997e-42}
+  m_BoundingSphereOverride: {x: 1.02e-43, y: 1.58e-43, z: 5.118e-42, w: 9.1835e-41}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0

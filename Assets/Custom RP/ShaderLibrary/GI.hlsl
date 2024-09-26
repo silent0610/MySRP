@@ -1,12 +1,17 @@
 #ifndef CUSTOM_GI_INCLUDED
 #define CUSTOM_GI_INCLUDED
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+
+
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURE2D(unity_ShadowMask);//unity自动填充数据
 SAMPLER(samplerunity_ShadowMask);
+TEXTURECUBE(unity_SpecCube0);
+SAMPLER(samplerunity_SpecCube0);
 //当需要渲染光照贴图对象时
 #if defined(LIGHTMAP_ON)
     #define GI_ATTRIBUTE_DATA float2 lightMapUV:TEXCOORD1;
@@ -22,10 +27,24 @@ SAMPLER(samplerunity_ShadowMask);
     #define GI_FRAGMENT_DATA(input) 0.0
 #endif
 
+//全局光照，存储间接光的数据
+//漫反射反应了间接光
+//镜面反射反映了环境？默认情况是天空盒
 struct GI {
     float3 diffuse;
+    float3 specular;
     ShadowMask shadowMask;
 };
+
+//采样环境立方体纹理
+float3 SampleEnvironment (Surface surfaceWS,BRDF brdf) {
+    float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
+    float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
+	float4 environment = SAMPLE_TEXTURECUBE_LOD(
+		unity_SpecCube0, samplerunity_SpecCube0, uvw, mip
+	);
+	return environment.rgb;
+}
 //采样shadowMask得到烘焙阴影数据
 float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS) {
     #if defined(LIGHTMAP_ON)
@@ -75,9 +94,10 @@ float3 SampleLightProbe(Surface surfaceWS) {
     #endif
 }
 
-GI GetGI(float2 lightMapUV, Surface surfaceWS) {
+GI GetGI(float2 lightMapUV, Surface surfaceWS,BRDF brdf) {
     GI gi;
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+    gi.specular = SampleEnvironment(surfaceWS,brdf);
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;
     gi.shadowMask.shadows = 1.0;

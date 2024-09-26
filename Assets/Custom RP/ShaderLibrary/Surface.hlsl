@@ -11,6 +11,8 @@ struct Surface {
 	float smoothness;
 	float depth;
 	float dither;
+	float fresnelStrength;//菲涅尔反射强度
+
 };
 
 #endif

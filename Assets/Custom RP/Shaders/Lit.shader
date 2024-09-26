@@ -15,6 +15,7 @@ Shader "Custom RP/Lit" {
         [HDR] _EmissionColor("Emission", Color) = (0.0, 0.0, 0.0, 0.0)
         [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
         [HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
+         _Fresnel ("Fresnel", Range(0, 1)) = 1 //控制菲涅尔反射强度
     }
     SubShader {
 
@@ -30,6 +31,7 @@ Shader "Custom RP/Lit" {
             HLSLPROGRAM
             //声明关键字
             #pragma target 3.5
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _SHADOW_MASK_DISTANCE  _SHADOW_MASK_ALWAYS
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
@@ -50,6 +52,7 @@ Shader "Custom RP/Lit" {
             ColorMask 0
             HLSLPROGRAM
             #pragma target 3.5
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
             #pragma multi_compile_instancing
             #pragma vertex ShadowCasterPassVertex
