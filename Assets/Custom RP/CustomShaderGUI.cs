@@ -42,7 +42,7 @@ public class CustomShaderGUI : ShaderGUI {
 				m.EnableKeyword(keyword);
 			}
 		} else {
-			foreach (Material m in materials) { 
+			foreach (Material m in materials) {
 				m.DisableKeyword(keyword);
 			}
 		}
@@ -50,7 +50,7 @@ public class CustomShaderGUI : ShaderGUI {
 	bool Clipping {
 		set => SetProperty("_Clipping", "_CLIPPING", value);
 	}
-	
+
 
 	bool PremultiplyAlpha {
 		set => SetProperty("_PremulAlpha", "_PREMULTIPLY_ALPHA", value);

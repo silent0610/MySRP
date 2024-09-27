@@ -21,6 +21,9 @@ Shader "Custom RP/Lit" {
         _DetailMap("Details",2D) = "linearGrey"{} //不加[NoScaleOffset]代表需要缩放偏移，r分量存储反照率系数，g分量存储平滑度系数
         _DetailAlbedo("Detail Albedo", Range(0, 1)) = 1
         _DetailSmoothness("Detail Smoothness", Range(0, 1)) = 1
+        
+        [NoScaleOffset] _NormalMap("Normals", 2D) = "bump" {} //法线贴图
+        _NormalScale("Normal Scale", Range(0, 1)) = 1 //控制法线强度
     }
     SubShader {
 

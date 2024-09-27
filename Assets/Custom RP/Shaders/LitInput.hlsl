@@ -6,6 +6,7 @@ TEXTURE2D(_EmissionMap);
 TEXTURE2D(_MaskMap);
 TEXTURE2D(_DetailMap);
 SAMPLER(sampler_DetailMap);
+TEXTURE2D(_NormalMap);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)//ST变量由UNITY赋值？
@@ -19,10 +20,23 @@ UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
 UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)
 UNITY_DEFINE_INSTANCED_PROP(float, _DetailAlbedo)
 UNITY_DEFINE_INSTANCED_PROP(float, _DetailSmoothness)
+UNITY_DEFINE_INSTANCED_PROP(float, _NormalScale)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
 
+float3 GetNormalTS (float2 baseUV) {
+	float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_BaseMap, baseUV);
+	float scale = INPUT_PROP(_NormalScale);
+	float3 normal = DecodeNormal(map, scale);
+	return normal;
+}
+//切线空间的法线（法线贴图），世界空间表面法线，世界空间切线，返回应用了贴图的世界空间法线
+float3 NormalTangentToWorld (float3 normalTS, float3 normalWS, float4 tangentWS) {
+	//TBN矩阵
+	float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
+	return TransformTangentToWorld(normalTS, tangentToWorld);
+}
 float2 TransformDetailUV (float2 detailUV) {
 	float4 detailST = INPUT_PROP(_DetailMap_ST);
 	return detailUV * detailST.xy + detailST.zw;
