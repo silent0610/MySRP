@@ -41,6 +41,7 @@ InputConfig GetInputConfig (float2 baseUV, float2 detailUV = 0.0) {
 	c.baseUV = baseUV;
 	c.detailUV = detailUV;
 	c.useMask = false;
+	c.useDetail = false;
 	return c;
 }
 float4 GetMask (InputConfig c){
