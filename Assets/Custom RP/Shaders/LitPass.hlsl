@@ -24,10 +24,14 @@ struct Varyings {
     float4 positionCS : SV_POSITION;
     float3 positionWS : VAR_POSITION;
     float2 baseUV : VAR_BASE_UV;
-    float2 detailUV : VAR_DETAIL_UV;
+	#if defined(_DETAIL_MAP)
+		float2 detailUV : VAR_DETAIL_UV;
+	#endif
     GI_VARYINGS_DATA
     float3 normalWS : VAR_NORMAL;
-    float4 tangentWS : VAR_TANGENT;
+	#if defined(_NORMAL_MAP)
+		float4 tangentWS : VAR_TANGENT;
+	#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 Varyings LitPassVertex(Attributes input) {
@@ -43,33 +47,51 @@ Varyings LitPassVertex(Attributes input) {
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
     //贴图位置
     output.baseUV = TransformBaseUV(input.baseUV);
-    output.detailUV = TransformDetailUV(input.baseUV);
+
+    #if defined(_NORMAL_MAP)
     output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    #endif
+    #if defined(_DETAIL_MAP)
+		output.detailUV = TransformDetailUV(input.baseUV);
+	#endif
     return output;
 }
 
 float4 LitPassFragment(Varyings input) : SV_TARGET {
     
     UNITY_SETUP_INSTANCE_ID(input);
-    ClipLOD(input.positionCS.xy, unity_LODFade.x);
-    
-    float4 base = GetBase(input.baseUV, input.detailUV);//贴图颜色乘以基础颜色+detail
-
+    ClipLOD(input.positionCS.xy, unity_LODFade.x); //LOD裁剪
+    InputConfig config = GetInputConfig(input.baseUV);
+    #if defined(_MASK_MAP)
+		config.useMask = true;
+	#endif
+    #if defined(_DETAIL_MAP)
+		config.detailUV = input.detailUV;
+		config.useDetail = true;
+	#endif
+    float4 base = GetBase(config);//贴图颜色乘以基础颜色+detail
+    #if defined(_CLIPPING) //透明度裁剪
+		clip(base.a - GetCutoff(config));
+	#endif
     Surface surface;
     surface.position = input.positionWS; //世界坐标
-    surface.normal = normalize(input.normalWS); //表面法线
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
     surface.depth = -TransformWorldToView(input.positionWS).z;
     surface.color = base.rgb;
     surface.alpha = base.a;
-    surface.metallic = GetMetallic(input.baseUV);
-    surface.smoothness = GetSmoothness(input.baseUV, input.detailUV);
-    surface.fresnelStrength = GetFresnel(input.baseUV);
+    surface.metallic = GetMetallic(config);
+    surface.smoothness = GetSmoothness(config);
+    surface.fresnelStrength = GetFresnel(config);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
-    surface.occlusion = GetOcclusion(input.baseUV);
-    surface.normal = NormalTangentToWorld(GetNormalTS(input.baseUV), input.normalWS, input.tangentWS);
-    //为什么不归一化？大多数网格的法线不会像三角形的顶点法线一样弯曲太多？？为什么？
-    surface.interpolatedNormal = input.normalWS;
+    surface.occlusion = GetOcclusion(config);
+    #if defined(_NORMAL_MAP)
+    surface.normal = NormalTangentToWorld(GetNormalTS(config),input.normalWS,input.tangentWS);//表面法线
+    surface.interpolatedNormal = input.normalWS;//为什么不归一化？大多数网格的法线不会像三角形的顶点法线一样弯曲太多？？为什么？
+    #else
+    	surface.normal = normalize(input.normalWS);
+		surface.interpolatedNormal = surface.normal;
+    #endif
+
     BRDF brdf;
     #if defined(_PREMULTIPLY_ALPHA)
         brdf = GetBRDF(surface, true);
@@ -78,7 +100,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     #endif
     GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
     float3 color = GetLighting(surface, brdf, gi); //着色，包括直接光，间接光
-    color += GetEmission(input.baseUV);
+    color += GetEmission(config);
     
     return float4(color, surface.alpha);
 }

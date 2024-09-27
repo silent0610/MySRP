@@ -8,6 +8,7 @@ Shader "Custom RP/Lit" {
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
         [Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
+        [Toggle(_MASK_MAP)] _MaskMapToggle ("Mask Map", Float) = 0
         [NoScaleOffset] _MaskMap("Mask (MODS)", 2D) = "white" {} //MODS memtallic occlusion,detail,smoothness
         _Metallic ("Metallic", range(0, 1)) = 0
         _Occlusion ("Occlusion", Range(0, 1)) = 1
@@ -18,12 +19,17 @@ Shader "Custom RP/Lit" {
         [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
         [HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
          _Fresnel ("Fresnel", Range(0, 1)) = 1 //控制菲涅尔反射强度
-        _DetailMap("Details",2D) = "linearGrey"{} //不加[NoScaleOffset]代表需要缩放偏移，r分量存储反照率系数，g分量存储平滑度系数
+        
+        [Toggle(_DETAIL_MAP)] _DetailMapToggle ("Detail Maps", Float) = 0
+        _DetailMap("Details",2D) = "linearGrey"{} //细节部分贴图。细节贴图更加精细，多了其他部分。不加[NoScaleOffset]代表需要缩放偏移，r分量存储反照率系数，g分量存储平滑度系数
         _DetailAlbedo("Detail Albedo", Range(0, 1)) = 1
         _DetailSmoothness("Detail Smoothness", Range(0, 1)) = 1
         
+        [Toggle(_NORMAL_MAP)] _NormalMapToggle ("Normal Map", Float) = 0//是否使用normal map
         [NoScaleOffset] _NormalMap("Normals", 2D) = "bump" {} //法线贴图
         _NormalScale("Normal Scale", Range(0, 1)) = 1 //控制法线强度
+        [NoScaleOffset] _DetailNormalMap("Detail Normals", 2D) = "bump" {} //细节部分的法线贴图
+        _DetailNormalScale("Detail Normal Scale", Range(0, 1)) = 1 //控制细节法线强度
     }
     SubShader {
 
@@ -39,6 +45,9 @@ Shader "Custom RP/Lit" {
             HLSLPROGRAM
             //声明关键字
             #pragma target 3.5
+            #pragma shader_feature _DETAIL_MAP
+            #pragma shader_feature _MASK_MAP
+            #pragma shader_feature _NORMAL_MAP
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _SHADOW_MASK_DISTANCE  _SHADOW_MASK_ALWAYS
             #pragma multi_compile _ LIGHTMAP_ON
