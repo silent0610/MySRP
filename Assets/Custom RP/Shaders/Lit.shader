@@ -16,6 +16,7 @@ Shader "Custom RP/Lit" {
         [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
         [HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
          _Fresnel ("Fresnel", Range(0, 1)) = 1 //控制菲涅尔反射强度
+        [NoScaleOffset] _MaskMap("Mask (MODS)", 2D) = "white" {}
     }
     SubShader {
 
@@ -42,7 +43,6 @@ Shader "Custom RP/Lit" {
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
             #pragma shader_feature _RECEIVE_SHADOWS
-            #pragma multi_compile _ LIGHTMAP_ON
             #include "LitPass.hlsl"
             ENDHLSL
         }

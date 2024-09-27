@@ -99,7 +99,9 @@ GI GetGI(float2 lightMapUV, Surface surfaceWS,BRDF brdf) {
     GI gi;
     //采样光照贴图和光照探针
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-    //采样环境立方体纹理
+    
+    //采样环境立方体纹理,不使用reflect probe时默认使用天空盒的cubmap进行镜面反射
+    //使用reflect probe时，只采样reflect probe
     gi.specular = SampleEnvironment(surfaceWS,brdf);
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;
