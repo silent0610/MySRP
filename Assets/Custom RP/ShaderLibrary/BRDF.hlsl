@@ -22,7 +22,7 @@ float3 IndirectBRDF (Surface surface, BRDF brdf, float3 diffuse, float3 specular
 
     float3 reflection = specular * lerp(brdf.specular, brdf.fresnel, fresnelStrength);//根据强度在BRDF镜面颜色和菲涅耳颜色之间进行插值
     reflection /= (brdf.roughness * brdf.roughness + 1.0);
-    return diffuse * brdf.diffuse + reflection;
+    return (diffuse * brdf.diffuse + reflection)* surface.occlusion;;
 }
 //双向反射方程
 BRDF GetBRDF(Surface surface, bool applyAlphaToDiffuse = false) {

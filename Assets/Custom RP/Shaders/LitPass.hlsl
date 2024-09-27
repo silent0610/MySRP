@@ -23,6 +23,7 @@ struct Varyings {
     float4 positionCS : SV_POSITION;
     float3 positionWS : VAR_POSITION;
     float2 baseUV : VAR_BASE_UV;
+    float2 detailUV:VAR_DETAIL_UV;
     GI_VARYINGS_DATA
     float3 normalWS : VAR_NORMAL;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -40,6 +41,7 @@ Varyings LitPassVertex(Attributes input) {
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
     //贴图位置
     output.baseUV = TransformBaseUV(input.baseUV);
+    output.detailUV = TransformDetailUV(input.baseUV);
     
     return output;
 }
@@ -49,7 +51,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     UNITY_SETUP_INSTANCE_ID(input);
     ClipLOD(input.positionCS.xy, unity_LODFade.x);
     
-    float4 base = GetBase(input.baseUV);//贴图颜色乘以基础颜色
+    float4 base = GetBase(input.baseUV, input.detailUV);//贴图颜色乘以基础颜色+detail
 
     Surface surface;
     surface.position = input.positionWS; //世界坐标
@@ -59,9 +61,10 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     surface.color = base.rgb;
     surface.alpha = base.a;
     surface.metallic = GetMetallic(input.baseUV);
-    surface.smoothness = GetSmoothness(input.baseUV);
+    surface.smoothness = GetSmoothness(input.baseUV, input.detailUV);
     surface.fresnelStrength = GetFresnel(input.baseUV);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+    surface.occlusion = GetOcclusion(input.baseUV);
     BRDF brdf;
     #if defined(_PREMULTIPLY_ALPHA)
         brdf = GetBRDF(surface, true);
@@ -71,8 +74,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     GI gi = GetGI(GI_FRAGMENT_DATA(input),surface,brdf);
     float3 color = GetLighting(surface, brdf, gi); //着色，包括直接光，间接光
     color += GetEmission(input.baseUV);
-    //float3 color = GetLighting(surface, brdf);
-    
+ 
     return float4(color, surface.alpha);
 }
 

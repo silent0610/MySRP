@@ -8,7 +8,9 @@ Shader "Custom RP/Lit" {
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
         [Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
+        [NoScaleOffset] _MaskMap("Mask (MODS)", 2D) = "white" {} //MODS memtallic occlusion,detail,smoothness
         _Metallic ("Metallic", range(0, 1)) = 0
+        _Occlusion ("Occlusion", Range(0, 1)) = 1
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
         [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("Receive Shadows", Float) = 1
         [NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
@@ -16,7 +18,9 @@ Shader "Custom RP/Lit" {
         [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
         [HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
          _Fresnel ("Fresnel", Range(0, 1)) = 1 //控制菲涅尔反射强度
-        [NoScaleOffset] _MaskMap("Mask (MODS)", 2D) = "white" {}
+        _DetailMap("Details",2D) = "linearGrey"{} //不加[NoScaleOffset]代表需要缩放偏移，r分量存储反照率系数，g分量存储平滑度系数
+        _DetailAlbedo("Detail Albedo", Range(0, 1)) = 1
+        _DetailSmoothness("Detail Smoothness", Range(0, 1)) = 1
     }
     SubShader {
 
