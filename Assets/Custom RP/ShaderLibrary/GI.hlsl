@@ -94,7 +94,7 @@ float3 SampleLightProbe(Surface surfaceWS) {
     #endif
 }
 
-//全局光照计算
+//全局光照计算（间接光）
 GI GetGI(float2 lightMapUV, Surface surfaceWS,BRDF brdf) {
     GI gi;
     //采样光照贴图和光照探针

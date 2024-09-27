@@ -62,6 +62,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     UNITY_SETUP_INSTANCE_ID(input);
     ClipLOD(input.positionCS.xy, unity_LODFade.x); //LOD裁剪
     InputConfig config = GetInputConfig(input.baseUV);
+    // 是否使用sMASK，detailmap，裁剪等
     #if defined(_MASK_MAP)
 		config.useMask = true;
 	#endif
@@ -84,8 +85,9 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     surface.fresnelStrength = GetFresnel(config);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
     surface.occlusion = GetOcclusion(config);
+    //是否使用法线贴图
     #if defined(_NORMAL_MAP)
-    surface.normal = NormalTangentToWorld(GetNormalTS(config),input.normalWS,input.tangentWS);//表面法线
+    surface.normal = NormalTangentToWorld(GetNormalTS(config),input.normalWS,input.tangentWS);//切线空间转表面法线
     surface.interpolatedNormal = input.normalWS;//为什么不归一化？大多数网格的法线不会像三角形的顶点法线一样弯曲太多？？为什么？
     #else
     	surface.normal = normalize(input.normalWS);
@@ -99,7 +101,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
         brdf = GetBRDF(surface);
     #endif
     GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
-    float3 color = GetLighting(surface, brdf, gi); //着色，包括直接光，间接光
+    float3 color = GetLighting(surface, brdf, gi); //直接光与实时阴影
     color += GetEmission(config);
     
     return float4(color, surface.alpha);
