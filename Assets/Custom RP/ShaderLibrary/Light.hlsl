@@ -15,12 +15,13 @@ CBUFFER_START(_CustomLight)
 	float4 _OtherLightPositions[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightDirections[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightSpotAngles[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightShadowData[MAX_OTHER_LIGHT_COUNT];
 CBUFFER_END
-
+//灯光的属性
 struct Light {
     float3 color;
     float3 direction;
-    float attenuation;
+    float attenuation; //最终的阴影衰减
 };
 
 int GetDirectionalLightCount() {
@@ -32,7 +33,13 @@ int GetOtherLightCount () {
 float FadedShadowStrength(float distance, float scale, float fade) {
     return saturate((1.0 - distance * scale) * fade);
 }
-//暂时不清楚这个函数的作用
+OtherShadowData GetOtherShadowData (int lightIndex) {
+	OtherShadowData data;
+	data.strength = _OtherLightShadowData[lightIndex].x;
+	data.shadowMaskChannel = _OtherLightShadowData[lightIndex].w;
+	return data;
+}
+//得到世界空间的表面阴影数据,比如控制阴影过渡,级联强度
 ShadowData GetShadowData(Surface surfaceWS) {
     ShadowData data;
     data.cascadeBlend = 1.0;
@@ -47,6 +54,7 @@ ShadowData GetShadowData(Surface surfaceWS) {
         float4 sphere = _CascadeCullingSpheres[i];
         float distanceSqr = DistanceSquared(surfaceWS.position, sphere.xyz);
         if (distanceSqr < sphere.w) {
+            //公式计算阴影过渡时的强度
             float fade = FadedShadowStrength(
                 distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z
             );
@@ -73,6 +81,7 @@ ShadowData GetShadowData(Surface surfaceWS) {
     data.cascadeIndex = i;
     return data;
 }
+//获取CPU传递过来的方向光阴影数据。
 DirectionalShadowData GetDirectionalShadowData(int lightIndex, ShadowData shadowData) {
     DirectionalShadowData data;
     data.strength = _DirectionalLightShadowData[lightIndex].x ;
@@ -81,6 +90,7 @@ DirectionalShadowData GetDirectionalShadowData(int lightIndex, ShadowData shadow
     data.shadowMaskChannel = _DirectionalLightShadowData[lightIndex].w;
     return data;
 }
+//获取方向光的数据
 Light GetDirectionalLight(int index, Surface surfaceWS, ShadowData shadowData) {
     Light light;
     light.color = _DirectionalLightColors[index].rgb;
@@ -107,7 +117,11 @@ Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData) {
 	float spotAttenuation = Square(
 		saturate(dot(_OtherLightDirections[index].xyz, light.direction) *
 		spotAngles.x + spotAngles.y));
-	light.attenuation = spotAttenuation * rangeAttenuation / distanceSqr;
+	OtherShadowData otherShadowData = GetOtherShadowData(index);
+    // //光照强度随范围和距离衰减
+    light.attenuation =
+		GetOtherShadowAttenuation(otherShadowData, shadowData, surfaceWS) *
+		spotAttenuation * rangeAttenuation / distanceSqr;
     
     return light;
 }

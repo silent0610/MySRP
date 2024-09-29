@@ -45,6 +45,7 @@ Shader "Custom RP/Lit" {
             HLSLPROGRAM
             //声明关键字
             #pragma target 3.5
+            #pragma multi_compile _ _LIGHTS_PER_OBJECT
             #pragma shader_feature _DETAIL_MAP
             #pragma shader_feature _MASK_MAP
             #pragma shader_feature _NORMAL_MAP

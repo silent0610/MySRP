@@ -7,7 +7,7 @@ float OneMinusReflectivity(float metallic) {
     float range = 1.0 - MIN_REFLECTIVITY;
     return range * (1 - metallic);
 }
-
+//BRDF包括漫反射部分颜色和镜面反射部分颜色，(根据物理属性计算)
 struct BRDF {
     float3 diffuse;
     float3 specular;
@@ -24,7 +24,7 @@ float3 IndirectBRDF (Surface surface, BRDF brdf, float3 diffuse, float3 specular
     reflection /= (brdf.roughness * brdf.roughness + 1.0);
     return (diffuse * brdf.diffuse + reflection)* surface.occlusion;;
 }
-//双向反射方程
+//获取给定表面的BRDF数据,使用表面的属性计算BRDF
 BRDF GetBRDF(Surface surface, bool applyAlphaToDiffuse = false) {
     BRDF brdf;
     float oneMinusReflectivity = OneMinusReflectivity(surface.metallic);

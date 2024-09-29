@@ -6,7 +6,7 @@ public class ShadowSettings {
     public float maxDistance = 10f;
     [Range(0.001f, 1f)]
     public float distanceFade = 0.1f;
-    public enum MapSize {
+    public enum MapSize {//阴影图(级联)尺寸
 		_256 = 256, _512 = 512, _1024 = 1024,
 		_2048 = 2048, _4096 = 4096, _8192 = 8192
 	}
