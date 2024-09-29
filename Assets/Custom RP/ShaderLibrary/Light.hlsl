@@ -2,12 +2,17 @@
 #define CUSTOM_LIGHT_INCLUDED
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 4
-
+#define MAX_OTHER_LIGHT_COUNT 64
 CBUFFER_START(_CustomLight)
-int _DirectionalLightCount;
-float4 _DirectionalLightColors[MAX_DIRECTIONAL_LIGHT_COUNT];
-float4 _DirectionalLightDirections[MAX_DIRECTIONAL_LIGHT_COUNT];
-float4 _DirectionalLightShadowData[MAX_DIRECTIONAL_LIGHT_COUNT];
+    int _DirectionalLightCount;
+    float4 _DirectionalLightColors[MAX_DIRECTIONAL_LIGHT_COUNT];
+    float4 _DirectionalLightDirections[MAX_DIRECTIONAL_LIGHT_COUNT];
+    float4 _DirectionalLightShadowData[MAX_DIRECTIONAL_LIGHT_COUNT];
+
+    // Other lights 数量,颜色,位置
+	int _OtherLightCount;
+	float4 _OtherLightColors[MAX_OTHER_LIGHT_COUNT];
+	float4 _OtherLightPositions[MAX_OTHER_LIGHT_COUNT];
 CBUFFER_END
 
 struct Light {
@@ -19,7 +24,9 @@ struct Light {
 int GetDirectionalLightCount() {
     return _DirectionalLightCount;
 }
-
+int GetOtherLightCount () {
+	return _OtherLightCount;
+}
 float FadedShadowStrength(float distance, float scale, float fade) {
     return saturate((1.0 - distance * scale) * fade);
 }
@@ -83,5 +90,20 @@ Light GetDirectionalLight(int index, Surface surfaceWS, ShadowData shadowData) {
     return light;
 }
 
+//获得从lighting.cs中赋值的其他光源
+Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData) {
+    Light light;
+    light.color = _OtherLightColors[index].rgb;
+    //光源到表面的方向,距离
+    float3 ray = _OtherLightPositions[index].xyz - surfaceWS.position;
+    light.direction = normalize(ray);
+    float distanceSqr = max(dot(ray, ray), 0.00001);
+	float rangeAttenuation = Square(
+		saturate(1.0 - Square(distanceSqr * _OtherLightPositions[index].w))
+	);
+	light.attenuation = rangeAttenuation / distanceSqr;
+
+    return light;
+}
 
 #endif

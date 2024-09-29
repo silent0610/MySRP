@@ -18,11 +18,15 @@ float3 GetLighting(Surface surfaceWS,BRDF brdf,GI gi) {
     shadowData.shadowMask = gi.shadowMask;
     //计算间接光照
     float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
-    //对每个光源计算直接光照
+    //对每个方向光源计算直接光照
     for (int i = 0; i < GetDirectionalLightCount(); i++) {
         Light light = GetDirectionalLight(i, surfaceWS, shadowData);
         color += GetLighting(surfaceWS,brdf, light);
     }
+    for (int j = 0; j < GetOtherLightCount(); j++) {
+		Light light = GetOtherLight(j, surfaceWS, shadowData);
+		color += GetLighting(surfaceWS, brdf, light);
+	}
     return color;
 }
 
