@@ -27,10 +27,14 @@ public class Lighting
 	static int
 		otherLightCountId = Shader.PropertyToID("_OtherLightCount"),//其他光源数量(点光源和面光源)
 		otherLightColorsId = Shader.PropertyToID("_OtherLightColors"),
-		otherLightPositionsId = Shader.PropertyToID("_OtherLightPositions");
+		otherLightPositionsId = Shader.PropertyToID("_OtherLightPositions"),
+		otherLightDirectionsId = Shader.PropertyToID("_OtherLightDirections"),//聚光灯需要方向
+		otherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles"); // 聚光灯内角
 	static Vector4[]
 		otherLightColors = new Vector4[maxOtherLightCount],
-		otherLightPositions = new Vector4[maxOtherLightCount];
+		otherLightPositions = new Vector4[maxOtherLightCount],
+		otherLightDirections = new Vector4[maxOtherLightCount],
+		otherLightSpotAngles = new Vector4[maxOtherLightCount];
 
 	CullingResults cullingResults;
 	Shadows shadows = new Shadows();
@@ -52,6 +56,7 @@ public class Lighting
         for (int i = 0; i < visibleLights.Length; i++)
         {
             VisibleLight visibleLight = visibleLights[i];
+			//根据光源类型设置光源数据
 			switch (visibleLight.lightType) {
 				case LightType.Directional:
 					if (dirLightCount < maxDirLightCount) {
@@ -61,6 +66,11 @@ public class Lighting
 				case LightType.Point:
 					if (otherLightCount < maxOtherLightCount) {//超过最大数量的光源不处理
 						SetupPointLight(otherLightCount++, ref visibleLight);
+					}
+					break;
+				case LightType.Spot:
+					if (otherLightCount < maxOtherLightCount) {
+						SetupSpotLight(otherLightCount++, ref visibleLight);
 					}
 					break;
 			}
@@ -76,6 +86,8 @@ public class Lighting
 		if (otherLightCount > 0) {
 			buffer.SetGlobalVectorArray(otherLightColorsId, otherLightColors);
 			buffer.SetGlobalVectorArray(otherLightPositionsId, otherLightPositions);
+			buffer.SetGlobalVectorArray(otherLightDirectionsId, otherLightDirections);
+			buffer.SetGlobalVectorArray(otherLightSpotAnglesId, otherLightSpotAngles);
 		}
 	
 	}
@@ -97,6 +109,25 @@ public class Lighting
 		Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
 		position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
 		otherLightPositions[index] = position;
+		//不需要设置Direction,在计算中使用spotangels 取代
+		otherLightSpotAngles[index] = new Vector4(0f, 1f);
+	}
+	//设置聚光灯数据,包括方向
+	void SetupSpotLight(int index, ref VisibleLight visibleLight) { 
+		otherLightColors[index] = visibleLight.finalColor;
+		Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
+		position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
+		otherLightPositions[index] = position;
+		otherLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+
+		//内角外角衰减计算
+		Light light = visibleLight.light;
+		float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);//VisibleLight 中可能没有innerSpotAngle这个属性,所以用Light
+		float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
+		float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
+		otherLightSpotAngles[index] = new Vector4(
+			angleRangeInv, -outerCos * angleRangeInv
+		);
 	}
 	public void Cleanup() {
 		shadows.Cleanup();
