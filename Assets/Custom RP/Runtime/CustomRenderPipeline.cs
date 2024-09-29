@@ -3,16 +3,18 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class CustomRenderPipeline : RenderPipeline {
+public partial class CustomRenderPipeline : RenderPipeline {
 	CameraRenderer renderer = new CameraRenderer();
-	bool useDynamicBatching, useGPUInstancing;
+	bool useDynamicBatching, useGPUInstancing, useLightsPerObject;
 	ShadowSettings shadowSettings;
-	public CustomRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher,ShadowSettings shadowSettings) {
+	public CustomRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher,bool useLightsPerObject, ShadowSettings shadowSettings) {
 		this.useDynamicBatching = useDynamicBatching;
 		this.useGPUInstancing = useGPUInstancing;
 		this.shadowSettings = shadowSettings;
+		this.useLightsPerObject = useLightsPerObject;
 		GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
-		GraphicsSettings.lightsUseLinearIntensity = true;
+		GraphicsSettings.lightsUseLinearIntensity = true; //灯光使用线性强度
+		InitializeForEditor();
 	}
 	
 	protected override void Render(ScriptableRenderContext context, Camera[] cameras) {
@@ -21,7 +23,7 @@ public class CustomRenderPipeline : RenderPipeline {
 
 	protected override void Render(ScriptableRenderContext context, List<Camera> cameras) {
 		for (int i = 0; i < cameras.Count; i++) {
-			renderer.Render(context, cameras[i], useDynamicBatching, useGPUInstancing,shadowSettings);
+			renderer.Render(context, cameras[i], useDynamicBatching, useGPUInstancing,useLightsPerObject,shadowSettings);
 		}
 	}
 

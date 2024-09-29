@@ -34,16 +34,15 @@ CBUFFER_END
 
 //当前方向光的阴影数据
 struct DirectionalShadowData {
-    float strength; //方向光强度
-    int tileIndex;
-	float normalBias;
+    float strength; //光源控制的当前阴影的强度
+    int tileIndex;//图块便宜
+	float normalBias;//法线偏差
     int shadowMaskChannel;
 };
-
-float SampleDirectionalShadowAtlas(float3 positionSTS) {
-    return SAMPLE_TEXTURE2D_SHADOW(_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS);
-}
-
+struct OtherShadowData {
+	float strength;//光源控制的当前阴影的强度
+	int shadowMaskChannel;
+};
 //存储烘焙阴影数据
 struct ShadowMask
 {
@@ -55,10 +54,55 @@ struct ShadowMask
 //表面的阴影数据
 struct ShadowData {
     int cascadeIndex;
-    float strength;
+    float strength;//ShadowData结构体中添加一个字段Strength作为一个标识符，如果超出最后一个级联范围就设为0。
     float cascadeBlend;
     ShadowMask shadowMask;
 };
+
+//得到烘焙阴影的衰减值
+float GetBakedShadow(ShadowMask mask,int channel) 
+{
+    float shadow = 1.0;
+    if (mask.distance || mask.always) 
+    {
+		if (channel >= 0) {
+			shadow = mask.shadows[channel];
+		}
+    }
+    return shadow;
+}
+
+float GetBakedShadow(ShadowMask mask,int channel, float strength) 
+{
+    if (mask.distance||mask.always) 
+    {
+        return lerp(1.0, GetBakedShadow(mask, channel), strength);
+    }
+    return 1.0;
+}
+//得到其他类型光源的阴影衰减,光源和烘焙的阴影遮罩
+float GetOtherShadowAttenuation (OtherShadowData other, ShadowData global, Surface surfaceWS) {
+	#if !defined(_RECEIVE_SHADOWS)
+		return 1.0;
+	#endif
+	
+	float shadow;
+	if (other.strength > 0.0) {
+		shadow = GetBakedShadow(
+			global.shadowMask, other.shadowMaskChannel, other.strength
+		);
+	}
+	else {
+		shadow = 1.0;
+	}
+	return shadow;
+}
+//采样阴影图集
+float SampleDirectionalShadowAtlas(float3 positionSTS) {
+    return SAMPLE_TEXTURE2D_SHADOW(_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS);
+}
+
+
 float FilterDirectionalShadow(float3 positionSTS) 
     {
         #if defined(DIRECTIONAL_FILTER_SETUP)
@@ -99,27 +143,7 @@ float GetCascadedShadow(DirectionalShadowData directional, ShadowData global, Su
     return shadow;
 }
 
-//得到烘焙阴影的衰减值
-float GetBakedShadow(ShadowMask mask,int channel) 
-{
-    float shadow = 1.0;
-    if (mask.distance || mask.always) 
-    {
-		if (channel >= 0) {
-			shadow = mask.shadows[channel];
-		}
-    }
-    return shadow;
-}
 
-float GetBakedShadow(ShadowMask mask,int channel, float strength) 
-{
-    if (mask.distance||mask.always) 
-    {
-        return lerp(1.0, GetBakedShadow(mask, channel), strength);
-    }
-    return 1.0;
-}
 //混合烘焙和实时阴影
 float MixBakedAndRealtimeShadows (
 	ShadowData global, float shadow, int shadowMaskChannel,float strength
@@ -137,7 +161,7 @@ float MixBakedAndRealtimeShadows (
 	return lerp(1.0, shadow, strength * global.strength);
 }
 
-//计算阴影衰减
+//计算最终阴影衰减
 float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowData global, Surface surfaceWS) 
 {
   #if !defined(_RECEIVE_SHADOWS)

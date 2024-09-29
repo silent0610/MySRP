@@ -11,12 +11,13 @@ public partial class CameraRenderer {
 		name = bufferName
 	};
 	CullingResults cullingResults;
+	// 要渲染的Pass 的Tag
 	static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
 		litShaderTagId = new ShaderTagId("CustomLit");
 
 	Lighting lighting = new Lighting();
 
-	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings) {
+	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing,bool useLightsPerObject, ShadowSettings shadowSettings) {
 		this.context = context;
 		this.camera = camera;
 		PrepareBuffer();
@@ -26,10 +27,10 @@ public partial class CameraRenderer {
 		}
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
-		lighting.Setup(context, cullingResults, shadowSettings);
+		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
 		buffer.EndSample(SampleName);
 		Setup();
-		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing);
+		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
 		DrawUnsupportedShaders();
 		DrawGizmos();
 		lighting.Cleanup();
@@ -62,16 +63,24 @@ public partial class CameraRenderer {
 		context.ExecuteCommandBuffer(buffer);
 		buffer.Clear();
 	}
-	void DrawVisiableGeometry(bool useDynamicBatching, bool useGPUInstancing) {
+	//画出可见物体
+	void DrawVisiableGeometry(bool useDynamicBatching, bool useGPUInstancing,bool useLightsPerObject) {
+		PerObjectData lightsPerObjectFlags = useLightsPerObject ?
+		PerObjectData.LightData | PerObjectData.LightIndices :
+		PerObjectData.None;
+
 		var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
+		//设置渲染的基础Pass
 		var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings) {
 			enableDynamicBatching = useDynamicBatching,
 			enableInstancing = useGPUInstancing,
 			//发送到GPU的数据
 			perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | PerObjectData.LightProbe
-| PerObjectData.OcclusionProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ReflectionProbes
+				| PerObjectData.OcclusionProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume
+				| PerObjectData.ReflectionProbes | lightsPerObjectFlags
 
 		};
+		//设置要渲染的Pass 即CusotmLit
 		drawingSettings.SetShaderPassName(1, litShaderTagId);
 		var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
 		context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);

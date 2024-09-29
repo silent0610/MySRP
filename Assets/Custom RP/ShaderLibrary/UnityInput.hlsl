@@ -18,6 +18,9 @@ CBUFFER_START(UnityPerDraw)
 	float4 unity_LightmapST;
 	float4 unity_DynamicLightmapST;
 	real4 unity_WorldTransformParams;
+
+	real4 unity_LightData;
+	real4 unity_LightIndices[2];
 	float4 unity_SHAr;
 	float4 unity_SHAg;
 	float4 unity_SHAb;
