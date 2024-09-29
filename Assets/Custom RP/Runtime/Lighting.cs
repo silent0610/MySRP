@@ -50,7 +50,7 @@ public class Lighting {
 		buffer.Clear();
 	}
 	void SetupLights(bool useLightsPerObject) {
-		//拿到光源索引列表
+		//光源索引列表
 		NativeArray<int> indexMap = useLightsPerObject ? cullingResults.GetLightIndexMap(Allocator.Temp) : default;
 		//得到所有可见光
 		NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
@@ -79,8 +79,10 @@ public class Lighting {
 					}
 					break;
 			}
-			if (useLightsPerObject) {
-				indexMap[i] = newIndex;
+            //把visible light中的第i个光源的索引映射到 newIndex上。映射作用于unity变量unity_LightIndices。比如原来unity_LightIndices[0][0] =i，应用映射后为newIndex
+            if (useLightsPerObject)
+            {
+                indexMap[i] = newIndex;
 			}
 			//将数据发送到GPU
 			buffer.SetGlobalInt(dirLightCountId, dirLightCount);

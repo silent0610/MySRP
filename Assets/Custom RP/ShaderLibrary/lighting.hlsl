@@ -26,6 +26,7 @@ float3 GetLighting(Surface surfaceWS,BRDF brdf,GI gi) {
     }
 	#if defined(_LIGHTS_PER_OBJECT)
 		for (int j = 0; min(unity_LightData.y, 8); j++) {
+			//存储了该点可见的光源索引，在启用映射后，得到了自定义的索引
 			int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
 			Light light = GetOtherLight(lightIndex, surfaceWS, shadowData);
 			color += GetLighting(surfaceWS, brdf, light);
