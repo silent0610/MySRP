@@ -29,7 +29,7 @@ public class Lighting {
 		otherLightPositionsId = Shader.PropertyToID("_OtherLightPositions"),
 		otherLightDirectionsId = Shader.PropertyToID("_OtherLightDirections"),//聚光灯需要方向
 		otherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles"), // 聚光灯内角
-	otherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
+		otherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
 	static Vector4[]
 		otherLightColors = new Vector4[maxOtherLightCount],
 		otherLightPositions = new Vector4[maxOtherLightCount],
