@@ -23,6 +23,7 @@ Varyings ShadowCasterPassVertex (Attributes input) {
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 	float3 positionWS = TransformObjectToWorld(input.positionOS);
 	output.positionCS = TransformWorldToHClip(positionWS);
+	//阴影平坠 即将顶点位置限制到阴影视椎体近裁剪平面
 	if(_ShadowPancaking){//clamp
 		#if UNITY_REVERSED_Z
 			output.positionCS.z =

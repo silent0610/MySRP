@@ -66,6 +66,7 @@ Shader "Custom RP/Lit" {
         }
 
         Pass {
+            //只需要写入深度数据，所以添加ColorMask 0不写入任何颜色数据，但会进行深度测试，并将深度值写到深度缓冲区中
             Tags { "LightMode" = "ShadowCaster" }
             ColorMask 0
             HLSLPROGRAM

@@ -56,8 +56,10 @@ struct DirectionalShadowData {
 struct OtherShadowData {
     float strength;//光源控制的当前阴影的强度
     int tileIndex;
+    bool isPoint;
     int shadowMaskChannel;
     float3 lightPositionWS;
+    float3 lightDirectionWS;
 	float3 spotDirectionWS;
 
 };
@@ -159,17 +161,32 @@ float GetCascadedShadow(DirectionalShadowData directional, ShadowData global, Su
     }
     return shadow;
 }
+static const float3 pointShadowPlanes[6] = {
+	float3(-1.0, 0.0, 0.0),
+	float3(1.0, 0.0, 0.0),
+	float3(0.0, -1.0, 0.0),
+	float3(0.0, 1.0, 0.0),
+	float3(0.0, 0.0, -1.0),
+	float3(0.0, 0.0, 1.0)
+};
 float GetOtherShadow (
 	OtherShadowData other, ShadowData global, Surface surfaceWS) {
-	float4 tileData = _OtherShadowTiles[other.tileIndex];
+	float tileIndex = other.tileIndex;
+	float3 lightPlane = other.spotDirectionWS;
+    if (other.isPoint) {
+		float faceOffset = CubeMapFaceID(-other.lightDirectionWS);
+		tileIndex += faceOffset;
+        lightPlane = pointShadowPlanes[faceOffset];
+	}   
+    float4 tileData = _OtherShadowTiles[tileIndex];
     //光到着色点的距离
     //光到着色点的距离向量点乘光中心方向,即|a||b|cos
     float3 surfaceToLight = other.lightPositionWS - surfaceWS.position;
-	float distanceToLightPlane = dot(surfaceToLight, other.spotDirectionWS);
+	float distanceToLightPlane = dot(surfaceToLight,lightPlane);
     float3 normalBias = surfaceWS.interpolatedNormal * (distanceToLightPlane * tileData.w);
 
 	float4 positionSTS = mul(
-		_OtherShadowMatrices[other.tileIndex],
+		_OtherShadowMatrices[tileIndex],
 		float4(surfaceWS.position + normalBias, 1.0)
 	);
 	return FilterOtherShadow(positionSTS.xyz / positionSTS.w, tileData.xyz);//透视投影，变换位置的XYZ除以Z
