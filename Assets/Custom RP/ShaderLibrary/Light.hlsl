@@ -66,7 +66,8 @@ ShadowData GetShadowData(Surface surfaceWS) {
             break;
         }
     }
-    if (i == _CascadeCount) {
+    //如果超出最大级联范围且级联数量大于0，将全局阴影强度设为0(不进行阴影采样)  
+    if (i == _CascadeCount && _CascadeCount > 0) {
         data.strength = 0.0;
     }
     #if defined(_CASCADE_BLEND_DITHER)
@@ -118,11 +119,11 @@ Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData) {
 		saturate(dot(_OtherLightDirections[index].xyz, light.direction) *
 		spotAngles.x + spotAngles.y));
 	OtherShadowData otherShadowData = GetOtherShadowData(index);
-    // //光照强度随范围和距离衰减
+    //光照强度随范围和距离衰减
     light.attenuation =
 		GetOtherShadowAttenuation(otherShadowData, shadowData, surfaceWS) *
 		spotAttenuation * rangeAttenuation / distanceSqr;
-    
+
     return light;
 }
 
