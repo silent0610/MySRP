@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 partial class CameraRenderer {
-	partial void DrawGizmos();
+	partial void DrawGizmosBeforeFX();//特效前的Gizmos
+	partial void DrawGizmosAfterFX();
 	partial void DrawUnsupportedShaders();
 	partial void PrepareForSceneWindow();
 	partial void PrepareBuffer();
@@ -30,9 +31,14 @@ partial class CameraRenderer {
 			ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 		}
 	}
-	partial void DrawGizmos() {
+	partial void DrawGizmosBeforeFX() {
 		if (Handles.ShouldRenderGizmos()) {
 			context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
+		}
+	}
+
+	partial void DrawGizmosAfterFX() {
+		if (Handles.ShouldRenderGizmos()) {
 			context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
 		}
 	}

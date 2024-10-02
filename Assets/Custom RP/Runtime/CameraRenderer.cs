@@ -12,12 +12,16 @@ public partial class CameraRenderer {
 	};
 	CullingResults cullingResults;
 	// 要渲染的Pass 的Tag
-	static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
+	static ShaderTagId 
+		unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
 		litShaderTagId = new ShaderTagId("CustomLit");
 
 	Lighting lighting = new Lighting();
 
-	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing,bool useLightsPerObject, ShadowSettings shadowSettings) {
+	PostFXStack postFXStack = new PostFXStack();
+	//摄像机的中间帧缓冲区
+	static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings) {
 		this.context = context;
 		this.camera = camera;
 		PrepareBuffer();
@@ -28,12 +32,17 @@ public partial class CameraRenderer {
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
 		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
+		postFXStack.Setup(context, camera, postFXSettings);
 		buffer.EndSample(SampleName);
 		Setup();
 		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
 		DrawUnsupportedShaders();
-		DrawGizmos();
-		lighting.Cleanup();
+		DrawGizmosBeforeFX();
+		if (postFXStack.IsActive) {
+			postFXStack.Render(frameBufferId);
+		}
+		DrawGizmosAfterFX();
+		Cleanup();
 		Submit();
 	}
 
@@ -48,6 +57,23 @@ public partial class CameraRenderer {
 	void Setup() {
 		context.SetupCameraProperties(camera);
 		CameraClearFlags flags = camera.clearFlags;
+		//获取中间帧缓冲区
+		if (postFXStack.IsActive) {
+			if (flags > CameraClearFlags.Color) {
+				flags = CameraClearFlags.Color;
+			}
+			//为了防止随机结果，当堆栈处于活动状态时，始终清除深度和颜色。
+			buffer.GetTemporaryRT(
+				frameBufferId, camera.pixelWidth, camera.pixelHeight,
+				32, FilterMode.Bilinear, RenderTextureFormat.Default
+			);
+			buffer.SetRenderTarget(//将中间帧缓冲区设置为当前渲染目标
+				frameBufferId,
+				RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+			);
+		}
+
+
 		buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags <= CameraClearFlags.Color, flags == CameraClearFlags.Color ?
 				camera.backgroundColor.linear : Color.clear);
 		buffer.BeginSample(SampleName);
@@ -64,7 +90,7 @@ public partial class CameraRenderer {
 		buffer.Clear();
 	}
 	//画出可见物体
-	void DrawVisiableGeometry(bool useDynamicBatching, bool useGPUInstancing,bool useLightsPerObject) {
+	void DrawVisiableGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject) {
 		PerObjectData lightsPerObjectFlags = useLightsPerObject ?
 		PerObjectData.LightData | PerObjectData.LightIndices :
 		PerObjectData.None;
@@ -91,6 +117,12 @@ public partial class CameraRenderer {
 		filteringSettings.renderQueueRange = RenderQueueRange.transparent;
 
 		context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+	}
+	void Cleanup() {
+		lighting.Cleanup();
+		if (postFXStack.IsActive) {
+			buffer.ReleaseTemporaryRT(frameBufferId);
+		}
 	}
 
 }
