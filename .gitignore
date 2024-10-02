@@ -1,6 +1,15 @@
-/*
+*.csproj
+*.sln
 .*
 !Assets/
 !.gitignore
 /Assets/ShaderlabVS/
 /Assets/TextMesh Pro/
+*.user
+/Logs
+/Library
+/Temp
+/projectSettings
+/UserSettings
+/obj
+/Packages
