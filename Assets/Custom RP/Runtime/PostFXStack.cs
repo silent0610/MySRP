@@ -42,6 +42,13 @@ public partial class PostFXStack {
 		buffer.BeginSample("Bloom");
 		PostFXSettings.BloomSettings bloom = settings.Bloom;
 		int width = camera.pixelWidth / 2, height = camera.pixelHeight / 2;
+		//如果迭代次数为0或者高度或宽度小于downscaleLimit,则直接拷贝
+		if (bloom.maxIterations == 0 || height < bloom.downscaleLimit 
+			|| width < bloom.downscaleLimit) {
+			Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+			buffer.EndSample("Bloom");
+			return;
+		}
 		RenderTextureFormat format = RenderTextureFormat.Default;
 		int fromId = sourceId, toId = bloomPyramidId + 1;
 
@@ -63,16 +70,21 @@ public partial class PostFXStack {
 			width /= 2;
 			height /= 2;
 		}
-		buffer.ReleaseTemporaryRT(fromId - 1);
-		toId -= 5;
-		//Draw(fromId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
-		for (i -= 1; i > 0; i--) {
-			buffer.SetGlobalTexture(fxSource2Id, toId + 1);
-			Draw(fromId, toId, Pass.BloomCombine);
-			buffer.ReleaseTemporaryRT(fromId);
-			buffer.ReleaseTemporaryRT(toId + 1);
-			fromId = toId;
-			toId -= 2;
+		//只有当迭代次数大于1时，才会上采样
+		if (i > 1) {
+			buffer.ReleaseTemporaryRT(fromId - 1);
+			toId -= 5;
+			//Draw(fromId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+			for (i -= 1; i > 0; i--) {
+				buffer.SetGlobalTexture(fxSource2Id, toId + 1);
+				Draw(fromId, toId, Pass.BloomCombine);
+				buffer.ReleaseTemporaryRT(fromId);
+				buffer.ReleaseTemporaryRT(toId + 1);
+				fromId = toId;
+				toId -= 2;
+			}
+		} else {
+			buffer.ReleaseTemporaryRT(bloomPyramidId);
 		}
 		buffer.SetGlobalTexture(fxSource2Id, sourceId);
 		Draw(fromId, BuiltinRenderTextureType.CameraTarget, Pass.BloomCombine);
