@@ -21,7 +21,8 @@ public partial class CameraRenderer {
 	PostFXStack postFXStack = new PostFXStack();
 	//摄像机的中间帧缓冲区
 	static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
-	public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings) {
+	bool useHDR;
+	public void Render(ScriptableRenderContext context, Camera camera,bool allowHDR, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings) {
 		this.context = context;
 		this.camera = camera;
 		PrepareBuffer();
@@ -29,10 +30,11 @@ public partial class CameraRenderer {
 		if (!Cull(shadowSettings.maxDistance)) {
 			return;
 		}
+		useHDR = allowHDR && camera.allowHDR;//管线允许HDR且相机允许HDR
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
 		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
-		postFXStack.Setup(context, camera, postFXSettings);
+		postFXStack.Setup(context, camera, postFXSettings, useHDR);
 		buffer.EndSample(SampleName);
 		Setup();
 		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
@@ -65,7 +67,7 @@ public partial class CameraRenderer {
 			//为了防止随机结果，当堆栈处于活动状态时，始终清除深度和颜色。
 			buffer.GetTemporaryRT(
 				frameBufferId, camera.pixelWidth, camera.pixelHeight,
-				32, FilterMode.Bilinear, RenderTextureFormat.Default
+				32, FilterMode.Bilinear, useHDR?RenderTextureFormat.DefaultHDR:RenderTextureFormat.Default
 			);
 			buffer.SetRenderTarget(//将中间帧缓冲区设置为当前渲染目标
 				frameBufferId,

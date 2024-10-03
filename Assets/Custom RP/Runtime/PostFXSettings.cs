@@ -33,9 +33,19 @@ public class PostFXSettings : ScriptableObject {
 		public float thresholdKnee;
 		[Min(0f)]
 		public float intensity;
+
+		public bool fadeFireflies; //闪烁
+		public enum Mode { Additive, Scattering }
+
+		public Mode mode;
+
+		[Range(0.05f, 0.95f)]
+		public float scatter;
 	}
 
 	[SerializeField]
-	BloomSettings bloom = default;
+	BloomSettings bloom = new BloomSettings {
+		scatter = 0.7f
+	};
 	public BloomSettings Bloom => bloom;
 }

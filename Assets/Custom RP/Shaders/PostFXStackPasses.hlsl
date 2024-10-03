@@ -1,7 +1,7 @@
 #ifndef CUSTOM_POST_FX_PASSES_INCLUDED
 #define CUSTOM_POST_FX_PASSES_INCLUDED
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
-
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 struct Varyings {
 	float4 positionCS : SV_POSITION;
 	float2 screenUV : VAR_SCREEN_UV;
@@ -97,7 +97,7 @@ float4 BloomVerticalPassFragment (Varyings input) : SV_TARGET {
 bool _BloomBicubicUpsampling;
 
 float _BloomIntensity;
-float4 BloomCombinePassFragment (Varyings input) : SV_TARGET {
+float4 BloomAddPassFragment (Varyings input) : SV_TARGET {
 	float3 lowRes;
 	if (_BloomBicubicUpsampling) {
 		lowRes = GetSourceBicubic(input.screenUV).rgb;
@@ -125,5 +125,47 @@ float3 ApplyBloomThreshold (float3 color) {
 float4 BloomPrefilterPassFragment (Varyings input) : SV_TARGET {
 	float3 color = ApplyBloomThreshold(GetSource(input.screenUV).rgb);
 	return float4(color, 1.0);
+}
+float4 BloomPrefilterFirefliesPassFragment (Varyings input) : SV_TARGET {
+	float3 color = 0.0;
+	float weightSum = 0.0;
+	float2 offsets[] = {
+		float2(0.0, 0.0),
+		float2(-1.0, -1.0), float2(-1.0, 1.0), float2(1.0, -1.0), float2(1.0, 1.0)};
+	for (int i = 0; i < 5; i++) {
+		float3 c =
+			GetSource(input.screenUV + offsets[i] * GetSourceTexelSize().xy * 2.0).rgb;
+		c = ApplyBloomThreshold(c);
+		float w = 1.0 / (Luminance(c) + 1.0);
+		color += c * w;
+		weightSum += w;
+	}
+	color /= weightSum;
+	return float4(color, 1.0);
+}
+float4 BloomScatterPassFragment (Varyings input) : SV_TARGET {
+	float3 lowRes;
+	if (_BloomBicubicUpsampling) {
+		lowRes = GetSourceBicubic(input.screenUV).rgb;
+	}
+	else {
+		lowRes = GetSource(input.screenUV).rgb;
+	}
+	float3 highRes = GetSource2(input.screenUV).rgb;
+	return float4(lerp(highRes, lowRes, _BloomIntensity), 1.0);
+}
+//通过添加高分辨率光线，然后再次减去高分辨率光线，将缺失的光线添加到低分辨率通道中，
+//但应用了布隆阈值。这不是一个完美的重建,忽略了由于萤火虫褪色而损失的光线——但足够接近，
+float4 BloomScatterFinalPassFragment (Varyings input) : SV_TARGET {
+	float3 lowRes;
+	if (_BloomBicubicUpsampling) {
+		lowRes = GetSourceBicubic(input.screenUV).rgb;
+	}
+	else {
+		lowRes = GetSource(input.screenUV).rgb;
+	}
+	float3 highRes = GetSource2(input.screenUV).rgb;
+	lowRes += highRes - ApplyBloomThreshold(highRes);
+	return float4(lerp(highRes, lowRes, _BloomIntensity), 1.0);
 }
 #endif

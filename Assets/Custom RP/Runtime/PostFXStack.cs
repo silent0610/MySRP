@@ -15,13 +15,17 @@ public partial class PostFXStack {
 
 	PostFXSettings settings;
 
+	bool useHDR;
 	public bool IsActive => settings != null;
 
 	const int maxBloomPyramidLevels = 16;
 	enum Pass {
-		BloomCombine,
+		BloomAdd,
 		BloomHorizontal,
 		BloomPrefilter,
+		BloomPrefilterFireflies,
+		BloomScatter,
+		BloomScatterFinal,
 		BloomVertical,
 		Copy
 	};
@@ -31,6 +35,7 @@ public partial class PostFXStack {
 		bloomPrefilterId = Shader.PropertyToID("_BloomPrefilter"),//半分辨率
 		fxSourceId = Shader.PropertyToID("_PostFXSource"),//中间帧缓冲区的数据
 		bloomIntensityId = Shader.PropertyToID("_BloomIntensity"),
+		bloomResultId = Shader.PropertyToID("_BloomResult"), //存储bloom结果,随后进行色调分级
 		fxSource2Id = Shader.PropertyToID("_PostFXSource2");
 
 	int bloomPyramidId;//第一个纹理的Id
@@ -50,7 +55,7 @@ public partial class PostFXStack {
 		PostFXSettings.BloomSettings bloom = settings.Bloom;
 		int width = camera.pixelWidth / 2, height = camera.pixelHeight / 2;
 		//如果迭代次数为0或者高度或宽度小于downscaleLimit,则直接拷贝
-		//乘2是因为进行了半分辨率处理
+		//乘2是因为要进行半分辨率处理,...
 		if (bloom.maxIterations == 0 || bloom.intensity <= 0f || height < bloom.downscaleLimit * 2
 			|| width < bloom.downscaleLimit * 2) {
 			Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
@@ -65,13 +70,15 @@ public partial class PostFXStack {
 		threshold.y -= threshold.x;
 		buffer.SetGlobalVector(bloomThresholdId, threshold);
 
-		RenderTextureFormat format = RenderTextureFormat.Default;
-		
+		RenderTextureFormat format = useHDR ?
+			RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+
 		//半分辨率,即先将原图像的尺寸减半,将该图像作为原始纹理
 		buffer.GetTemporaryRT(
 			bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format
 		);
-		Draw(sourceId, bloomPrefilterId, Pass.BloomPrefilter);
+		Draw(sourceId, bloomPrefilterId, bloom.fadeFireflies ?
+				Pass.BloomPrefilterFireflies : Pass.BloomPrefilter);
 		width /= 2;
 		height /= 2;
 
@@ -99,8 +106,19 @@ public partial class PostFXStack {
 		buffer.ReleaseTemporaryRT(bloomPrefilterId);
 		//是否进行三重
 		buffer.SetGlobalFloat(bloomBucibicUpsamplingId, bloom.bicubicUpsampling ? 1f : 0f);
-
-		buffer.SetGlobalFloat(bloomIntensityId, 1f);
+		Pass combinePass, finalPass;
+		float finalIntensity;
+		if (bloom.mode == PostFXSettings.BloomSettings.Mode.Additive) {
+			combinePass = finalPass = Pass.BloomAdd;
+			buffer.SetGlobalFloat(bloomIntensityId, 1f);
+			finalIntensity = bloom.intensity;
+		}
+		else {
+			combinePass = Pass.BloomScatter;
+			finalPass = Pass.BloomScatterFinal;
+			buffer.SetGlobalFloat(bloomIntensityId, bloom.scatter);
+			finalIntensity = Mathf.Min(bloom.intensity, 0.95f);
+		}
 		//只有当迭代次数大于1时，才会上采样
 		if (i > 1) {
 			buffer.ReleaseTemporaryRT(fromId - 1);
@@ -108,7 +126,7 @@ public partial class PostFXStack {
 			//Draw(fromId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
 			for (i -= 1; i > 0; i--) {
 				buffer.SetGlobalTexture(fxSource2Id, toId + 1);
-				Draw(fromId, toId, Pass.BloomCombine);
+				Draw(fromId, toId, combinePass);
 				buffer.ReleaseTemporaryRT(fromId);
 				buffer.ReleaseTemporaryRT(toId + 1);
 				fromId = toId;
@@ -117,9 +135,9 @@ public partial class PostFXStack {
 		} else {
 			buffer.ReleaseTemporaryRT(bloomPyramidId);
 		}
-		buffer.SetGlobalFloat(bloomIntensityId, bloom.intensity);
+		buffer.SetGlobalFloat(bloomIntensityId, finalIntensity);
 		buffer.SetGlobalTexture(fxSource2Id, sourceId);
-		Draw(fromId, BuiltinRenderTextureType.CameraTarget, Pass.BloomCombine);
+		Draw(fromId, BuiltinRenderTextureType.CameraTarget, finalPass);
 		buffer.ReleaseTemporaryRT(fromId);
 		buffer.EndSample("Bloom");
 	}
@@ -129,16 +147,20 @@ public partial class PostFXStack {
 		buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 		buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)pass, MeshTopology.Triangles, 3);   
 	}
+	
 	public void Setup(
-		ScriptableRenderContext context, Camera camera, PostFXSettings settings
+		ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR
 	) {
 		this.context = context;
 		this.camera = camera;
+		this.useHDR = useHDR;
 		//检查是否相机渲染Game或Scene视图.如果没有，则将后处理特效资产配置设为空，使得该相机停止渲染后处理特效。
 		this.settings = camera.cameraType <= CameraType.SceneView ? settings : null;
 		ApplySceneViewState();
 	}
-
+	void DoToneMapping(int sourceId) {
+		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+	}
 	public void Render(int sourceId) {
 		//只需使用适当的着色器绘制一个覆盖整个图像的矩形，即可将效果应用于整个图像。
 		//Blit 将sourceId的内容复制到BuiltinRenderTextureType.CameraTarget,

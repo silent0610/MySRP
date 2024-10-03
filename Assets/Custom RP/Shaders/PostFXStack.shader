@@ -10,14 +10,15 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		#include "PostFXStackPasses.hlsl"
 		ENDHLSL
 		Pass { 
-			Name "Bloom Combine"
+			Name "Bloom Add"
 			
 			HLSLPROGRAM
 				#pragma target 3.5
 				#pragma vertex DefaultPassVertex
-				#pragma fragment BloomCombinePassFragment
+				#pragma fragment BloomAddPassFragment
 			ENDHLSL
 		}
+
 		Pass { 
 			Name "Bloom Horizontal"
 			
@@ -33,7 +34,34 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			HLSLPROGRAM
 				#pragma target 3.5
 				#pragma vertex DefaultPassVertex
-				#pragma fragment CopyPassFragment
+				#pragma fragment BloomPrefilterPassFragment
+			ENDHLSL
+		}
+		Pass {
+			Name "Bloom Prefilter Fireflies"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment BloomPrefilterFirefliesPassFragment
+			ENDHLSL
+		}
+		Pass {
+			Name "Bloom Scatter"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment BloomScatterPassFragment
+			ENDHLSL
+		}
+		Pass { 
+			Name "Bloom Scatter Final"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment BloomScatterFinalPassFragment
 			ENDHLSL
 		}
 		Pass {
