@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+using static PostFXSettings;
+// 它使类或结构的所有常量、静态和类型成员都可以直接访问
 public partial class PostFXStack {
 
 	const string bufferName = "Post FX";
@@ -28,6 +30,7 @@ public partial class PostFXStack {
 		BloomScatterFinal,
 		BloomVertical,
 		Copy,
+		ToneMappingNone,
 		ToneMappingACES,
 		ToneMappingNeutral,
 		ToneMappingReinhard,
@@ -40,8 +43,10 @@ public partial class PostFXStack {
 		fxSourceId = Shader.PropertyToID("_PostFXSource"),//中间帧缓冲区的数据
 		bloomIntensityId = Shader.PropertyToID("_BloomIntensity"),
 		bloomResultId = Shader.PropertyToID("_BloomResult"), //存储bloom结果,随后进行色调分级
-		fxSource2Id = Shader.PropertyToID("_PostFXSource2");
-
+		fxSource2Id = Shader.PropertyToID("_PostFXSource2"),
+		colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
+		colorFilterId = Shader.PropertyToID("_ColorFilter");
+		
 	int bloomPyramidId;//第一个纹理的Id
 
 
@@ -167,9 +172,22 @@ public partial class PostFXStack {
 		this.settings = camera.cameraType <= CameraType.SceneView ? settings : null;
 		ApplySceneViewState();
 	}
-	void DoToneMapping(int sourceId) {
-		PostFXSettings.ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
-		Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingACES + (int)mode;
+
+	void ConfigureColorAdjustments() {//传递颜色分级参数
+		ColorAdjustmentsSettings colorAdjustments = settings.ColorAdjustments;
+		buffer.SetGlobalVector(colorAdjustmentsId, new Vector4(
+			Mathf.Pow(2f, colorAdjustments.postExposure),
+			colorAdjustments.contrast * 0.01f + 1f, //-1-1
+			colorAdjustments.hueShift * (1f / 360f),//0-2
+			colorAdjustments.saturation * 0.01f + 1f
+		));
+		buffer.SetGlobalColor(colorFilterId, colorAdjustments.colorFilter.linear);
+	}
+
+	void DoColorGradingAndToneMapping(int sourceId) {//颜色分级与色调映射
+		ConfigureColorAdjustments();
+		ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+		Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingNone + (int)mode;
 		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, pass);
 	}
 	public void Render(int sourceId) {
@@ -178,11 +196,11 @@ public partial class PostFXStack {
 		//后者代表了当前渲染摄像机的目标纹理
 		//buffer.Blit(sourceId, BuiltinRenderTextureType.CameraTarget);
 		if (DoBloom(sourceId)) {
-			DoToneMapping(bloomResultId);
+			DoColorGradingAndToneMapping(bloomResultId);
 			buffer.ReleaseTemporaryRT(bloomResultId);
 		}
 		else {
-			DoToneMapping(sourceId);
+			DoColorGradingAndToneMapping(sourceId);
 		}
 		//DoBloom(sourceId);
 		context.ExecuteCommandBuffer(buffer);

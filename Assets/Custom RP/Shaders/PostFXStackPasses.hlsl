@@ -8,6 +8,10 @@ struct Varyings {
 };
 
 float4 _PostFXSource_TexelSize; //Unity给出的屏幕像素大小
+float4 _ColorAdjustments;
+float4 _ColorFilter;
+
+
 float4 GetSourceTexelSize () {
 	return _PostFXSource_TexelSize;
 }
@@ -169,22 +173,63 @@ float4 BloomScatterFinalPassFragment (Varyings input) : SV_TARGET {
 	return float4(lerp(highRes, lowRes, _BloomIntensity), 1.0);
 }
 
+float3 ColorGradePostExposure (float3 color) {//颜色分级的 后曝光
+	return color * _ColorAdjustments.x;
+}
+float3 ColorGradingContrast (float3 color) { //对比度 即将颜色推离中灰色
+	color = LinearToLogC(color);
+	color = (color - ACEScc_MIDGRAY) * _ColorAdjustments.y + ACEScc_MIDGRAY;
+	return LogCToLinear(color);
+}
+float3 ColorGradeColorFilter (float3 color) { //滤镜
+	return color * _ColorFilter.rgb;
+}
+float3 ColorGradingHueShift (float3 color) {//色调偏移
+	color = RgbToHsv(color);//需要在hsv空间中进行操作
+	float hue = color.x + _ColorAdjustments.z;
+	color.x = RotateHue(hue, 0.0, 1.0); //意思是在一个转盘内0》180》360(0)》180
+	return HsvToRgb(color);//转回rgb
+}
+float3 ColorGradingSaturation (float3 color) {//饱和度
+	float luminance = Luminance(color);//获取颜色亮度,且不需要log
+	return (color - luminance) * _ColorAdjustments.w + luminance;
+}
+
+//颜色分级
+float3 ColorGrade (float3 color) {
+	color = min(color, 60.0);//限制在60,避免精度问题
+	color = ColorGradePostExposure(color);
+	color = ColorGradingContrast(color);
+	color = ColorGradeColorFilter(color);
+	color = max(color, 0.0);
+	color = ColorGradingHueShift(color);
+	color = ColorGradingSaturation(color); //这可能再次产生负值
+	return max(color, 0.0);
+}
+float4 ToneMappingNonePassFragment (Varyings input) : SV_TARGET {
+	float4 color = GetSource(input.screenUV);
+	color.rgb = ColorGrade(color.rgb);
+	return color;
+}
+
 float4 ToneMappingReinhardPassFragment (Varyings input) : SV_TARGET {
 	float4 color = GetSource(input.screenUV);
-	color.rgb = min(color.rgb, 60.0);//限制在60,避免精度问题
+	color.rgb = ColorGrade(color.rgb);
 	color.rgb /= color.rgb + 1.0;
 	return color;
 }
 float4 ToneMappingNeutralPassFragment (Varyings input) : SV_TARGET {
 	float4 color = GetSource(input.screenUV);
-	color.rgb = min(color.rgb, 60.0);
+	color.rgb = ColorGrade(color.rgb);
 	color.rgb = NeutralTonemap(color.rgb);
 	return color;
 }
 float4 ToneMappingACESPassFragment (Varyings input) : SV_TARGET {
 	float4 color = GetSource(input.screenUV);
-	color.rgb = min(color.rgb, 60.0);
+	color.rgb = ColorGrade(color.rgb);
 	color.rgb = AcesTonemap(unity_to_ACES(color.rgb));
 	return color;
 }
+
+
 #endif

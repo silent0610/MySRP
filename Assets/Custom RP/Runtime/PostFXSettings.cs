@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using System;
 using UnityEngine;
 [CreateAssetMenu(menuName = "Rendering/Custom Post FX Settings")]
 public class PostFXSettings : ScriptableObject {
@@ -6,7 +6,7 @@ public class PostFXSettings : ScriptableObject {
 	[SerializeField]
 	Shader shader = default;
 
-	[System.NonSerialized]
+	[NonSerialized]
 	Material material;
 
 	public Material Material {
@@ -19,7 +19,7 @@ public class PostFXSettings : ScriptableObject {
 		}
 	}
 
-	[System.Serializable]
+	[Serializable]
 	public struct BloomSettings {
 		[Range(0f, 16f)]
 		public int maxIterations ;
@@ -51,10 +51,33 @@ public class PostFXSettings : ScriptableObject {
 	};
 	public BloomSettings Bloom => bloom;
 
-	[System.Serializable]
-	public struct ToneMappingSettings {
+	[Serializable]
+	public struct ColorAdjustmentsSettings {
+		public float postExposure;//后曝光
+
+		[Range(-100f, 100f)]
+		public float contrast;//对比度
+
+		[ColorUsage(false, true)]
+		public Color colorFilter;//颜色滤镜
+
+		[Range(-180f, 180f)]
+		public float hueShift;//色调偏移
+
+		[Range(-100f, 100f)]
+		public float saturation;//饱和度
+
+	}
+	[SerializeField]
+	ColorAdjustmentsSettings colorAdjustments = new ColorAdjustmentsSettings {
+		colorFilter = Color.white
+	};
+	public ColorAdjustmentsSettings ColorAdjustments => colorAdjustments;
+
+	[Serializable]
+	public struct ToneMappingSettings { //Tone Mapping
 		//ReinHard  c/1+c
-		public enum Mode { None = -1,ACES, Neutral, Reinhard }
+		public enum Mode { None ,ACES, Neutral, Reinhard }
 
 		public Mode mode;
 	}
