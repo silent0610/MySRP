@@ -27,7 +27,11 @@ public partial class PostFXStack {
 		BloomScatter,
 		BloomScatterFinal,
 		BloomVertical,
-		Copy
+		Copy,
+		ToneMappingACES,
+		ToneMappingNeutral,
+		ToneMappingReinhard,
+
 	};
 	int
 		bloomBucibicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
@@ -40,28 +44,27 @@ public partial class PostFXStack {
 
 	int bloomPyramidId;//第一个纹理的Id
 
-	
+
 	public PostFXStack() {
 		//一次获取所有标识符Id. 只需保存第一个
 		//unity按照请求新属性名的顺序顺序分配标识符,一次获取的Id是连续的
 		bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
-		for (int i = 1; i < maxBloomPyramidLevels*2; i++) {
+		for (int i = 1; i < maxBloomPyramidLevels * 2; i++) {
 			Shader.PropertyToID("_BloomPyramid" + i);
 		}
 	}
 	//为给定的源标识符应用Bloom
-	void DoBloom(int sourceId) {
-		buffer.BeginSample("Bloom");
+	bool DoBloom(int sourceId) {
+
 		PostFXSettings.BloomSettings bloom = settings.Bloom;
 		int width = camera.pixelWidth / 2, height = camera.pixelHeight / 2;
 		//如果迭代次数为0或者高度或宽度小于downscaleLimit,则直接拷贝
 		//乘2是因为要进行半分辨率处理,...
 		if (bloom.maxIterations == 0 || bloom.intensity <= 0f || height < bloom.downscaleLimit * 2
 			|| width < bloom.downscaleLimit * 2) {
-			Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
-			buffer.EndSample("Bloom");
-			return;
+			return false;
 		}
+		buffer.BeginSample("Bloom");
 		Vector4 threshold;
 		threshold.x = Mathf.GammaToLinearSpace(bloom.threshold);
 		threshold.y = threshold.x * bloom.thresholdKnee;
@@ -132,22 +135,28 @@ public partial class PostFXStack {
 				fromId = toId;
 				toId -= 2;
 			}
-		} else {
+		}
+		else {
 			buffer.ReleaseTemporaryRT(bloomPyramidId);
 		}
 		buffer.SetGlobalFloat(bloomIntensityId, finalIntensity);
 		buffer.SetGlobalTexture(fxSource2Id, sourceId);
-		Draw(fromId, BuiltinRenderTextureType.CameraTarget, finalPass);
+		buffer.GetTemporaryRT(
+		bloomResultId, camera.pixelWidth, camera.pixelHeight, 0,
+			FilterMode.Bilinear, format
+		);
+		Draw(fromId, bloomResultId, finalPass);
 		buffer.ReleaseTemporaryRT(fromId);
 		buffer.EndSample("Bloom");
+		return true;
 	}
 
 	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, Pass pass) {
 		buffer.SetGlobalTexture(fxSourceId, from);//设置全局纹理,即是把中间帧缓冲区的数据发送到GPU上
 		buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-		buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)pass, MeshTopology.Triangles, 3);   
+		buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)pass, MeshTopology.Triangles, 3);
 	}
-	
+
 	public void Setup(
 		ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR
 	) {
@@ -159,14 +168,23 @@ public partial class PostFXStack {
 		ApplySceneViewState();
 	}
 	void DoToneMapping(int sourceId) {
-		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+		PostFXSettings.ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+		Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingACES + (int)mode;
+		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, pass);
 	}
 	public void Render(int sourceId) {
 		//只需使用适当的着色器绘制一个覆盖整个图像的矩形，即可将效果应用于整个图像。
 		//Blit 将sourceId的内容复制到BuiltinRenderTextureType.CameraTarget,
 		//后者代表了当前渲染摄像机的目标纹理
 		//buffer.Blit(sourceId, BuiltinRenderTextureType.CameraTarget);
-		DoBloom(sourceId);
+		if (DoBloom(sourceId)) {
+			DoToneMapping(bloomResultId);
+			buffer.ReleaseTemporaryRT(bloomResultId);
+		}
+		else {
+			DoToneMapping(sourceId);
+		}
+		//DoBloom(sourceId);
 		context.ExecuteCommandBuffer(buffer);
 		buffer.Clear();
 	}
