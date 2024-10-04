@@ -39,17 +39,18 @@ public class Lighting {
 	static string lightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
 	CullingResults cullingResults;
 	Shadows shadows = new Shadows();
-	public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, bool useLightsPerObject) {
+	public void Setup(ScriptableRenderContext context, CullingResults cullingResults, 
+		ShadowSettings shadowSettings, bool useLightsPerObject, int renderingLayerMask) {
 		this.cullingResults = cullingResults;
 		buffer.BeginSample(bufferName);
 		shadows.Setup(context, cullingResults, shadowSettings);
-		SetupLights(useLightsPerObject);
+		SetupLights(useLightsPerObject, renderingLayerMask);
 		shadows.Render();
 		buffer.EndSample(bufferName);
 		context.ExecuteCommandBuffer(buffer);
 		buffer.Clear();
 	}
-	void SetupLights(bool useLightsPerObject) {
+	void SetupLights(bool useLightsPerObject, int renderingLayerMask) {
 		//光源索引列表
 		NativeArray<int> indexMap = useLightsPerObject ? cullingResults.GetLightIndexMap(Allocator.Temp) : default;
 		//得到所有可见光
@@ -60,25 +61,32 @@ public class Lighting {
 			int newIndex = -1;//只记录点光源和聚光灯的索引
 			VisibleLight visibleLight = visibleLights[i];
 			Light light = visibleLight.light;
-			//根据光源类型设置光源数据
-			switch (visibleLight.lightType) {
-				case LightType.Directional:
-					if (dirLightCount < maxDirLightCount) {
-						SetupDirectionalLight(dirLightCount++,i, ref visibleLight,light);
-					}
-					break;
-				case LightType.Point:
-					if (otherLightCount < maxOtherLightCount) {//超过最大数量的光源不处理
-						newIndex = otherLightCount;
-						SetupPointLight(otherLightCount++,i, ref visibleLight,light);
-					}
-					break;
-				case LightType.Spot:
-					if (otherLightCount < maxOtherLightCount) {
-						newIndex = otherLightCount;
-						SetupSpotLight(otherLightCount++,i, ref visibleLight, light);
-					}
-					break;
+			if ((light.renderingLayerMask & renderingLayerMask) != 0)
+			{
+				//根据光源类型设置光源数据
+				switch (visibleLight.lightType)
+				{
+					case LightType.Directional:
+						if (dirLightCount < maxDirLightCount)
+						{
+							SetupDirectionalLight(dirLightCount++, i, ref visibleLight, light);
+						}
+						break;
+					case LightType.Point:
+						if (otherLightCount < maxOtherLightCount)
+						{//超过最大数量的光源不处理
+							newIndex = otherLightCount;
+							SetupPointLight(otherLightCount++, i, ref visibleLight, light);
+						}
+						break;
+					case LightType.Spot:
+						if (otherLightCount < maxOtherLightCount)
+						{
+							newIndex = otherLightCount;
+							SetupSpotLight(otherLightCount++, i, ref visibleLight, light);
+						}
+						break;
+				}
 			}
             //把visiblelight中的第i个光源的索引映射到 newIndex上。映射作用于unity变量unity_LightIndices。比如原来unity_LightIndices[0][0] =i，应用映射后为newIndex
             if (useLightsPerObject)

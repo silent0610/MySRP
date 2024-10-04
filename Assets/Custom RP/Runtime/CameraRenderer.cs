@@ -46,12 +46,15 @@ public partial class CameraRenderer {
 		useHDR = allowHDR && camera.allowHDR;//管线允许HDR且相机允许HDR
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
-		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
+		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject,
+            cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
 		postFXStack.Setup(context, camera, postFXSettings, useHDR, 
 			colorLUTResolution, cameraSettings.finalBlendMode);
 		buffer.EndSample(SampleName);
 		Setup();
-		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
+		DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject,
+			cameraSettings.renderingLayerMask
+			);
 		DrawUnsupportedShaders();
 		DrawGizmosBeforeFX();
 		if (postFXStack.IsActive) {//fx
@@ -106,7 +109,8 @@ public partial class CameraRenderer {
 		buffer.Clear();
 	}
 	//画出可见物体
-	void DrawVisiableGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject) {
+	void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, 
+		bool useLightsPerObject, int renderingLayerMask) {
 		PerObjectData lightsPerObjectFlags = useLightsPerObject ?
 		PerObjectData.LightData | PerObjectData.LightIndices :
 		PerObjectData.None;
@@ -124,8 +128,10 @@ public partial class CameraRenderer {
 		};
 		//设置要渲染的Pass 即CusotmLit
 		drawingSettings.SetShaderPassName(1, litShaderTagId);
-		var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-		context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque,
+            renderingLayerMask: (uint)renderingLayerMask
+        );
+        context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
 		context.DrawSkybox(camera);
 
 		sortingSettings.criteria = SortingCriteria.CommonTransparent;

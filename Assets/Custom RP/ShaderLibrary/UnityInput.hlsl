@@ -18,7 +18,7 @@ CBUFFER_START(UnityPerDraw)
 	float4 unity_LightmapST;
 	float4 unity_DynamicLightmapST;
 	real4 unity_WorldTransformParams;
-	float4 unity_RenderingLayer;
+	float4 unity_RenderingLayer; //x存储物体的渲染掩码
 	real4 unity_LightData;
 	real4 unity_LightIndices[2];
 	float4 unity_SHAr;
