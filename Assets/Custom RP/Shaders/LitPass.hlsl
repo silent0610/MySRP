@@ -85,6 +85,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     surface.fresnelStrength = GetFresnel(config);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
     surface.occlusion = GetOcclusion(config);
+    surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
     //是否使用法线贴图
     #if defined(_NORMAL_MAP)
     surface.normal = NormalTangentToWorld(GetNormalTS(config),input.normalWS,input.tangentWS);//切线空间转表面法线

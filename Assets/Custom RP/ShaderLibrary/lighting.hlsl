@@ -1,6 +1,10 @@
 #ifndef CUSTOM_LIGHTING_INCLUDED
 #define CUSTOM_LIGHTING_INCLUDED
 
+//返回曲面和光线的蒙版是否重叠。
+bool RenderingLayersOverlap (Surface surface, Light light) {
+	return (surface.renderingLayerMask & light.renderingLayerMask) != 0;
+}
 //计算入射光照
 //计算投到该表面上的光（颜色，能量）
 float3 IncomingLight (Surface surface, Light light) {
@@ -22,20 +26,25 @@ float3 GetLighting(Surface surfaceWS,BRDF brdf,GI gi) {
     //对每个方向光源计算直接光照
     for (int i = 0; i < GetDirectionalLightCount(); i++) {
         Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-        color += GetLighting(surfaceWS,brdf, light);
+		if (RenderingLayersOverlap(surfaceWS, light)) {
+			color += GetLighting(surfaceWS, brdf, light);
+		}
     }
 	#if defined(_LIGHTS_PER_OBJECT)
 		for (int j = 0; min(unity_LightData.y, 8); j++) {
 			//存储了该点可见的光源索引，在启用映射后，得到了自定义的索引
 			int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
 			Light light = GetOtherLight(lightIndex, surfaceWS, shadowData);
-			color += GetLighting(surfaceWS, brdf, light);
+			if (RenderingLayersOverlap(surfaceWS, light)) {
+				color += GetLighting(surfaceWS, brdf, light);
+			}
 		}
 	#else
 		for (int j = 0; j < GetOtherLightCount(); j++) {
 			Light light = GetOtherLight(j, surfaceWS, shadowData);
-			color += GetLighting(surfaceWS, brdf, light);
-
+			if (RenderingLayersOverlap(surfaceWS, light)) {
+				color += GetLighting(surfaceWS, brdf, light);
+			}
 		}
 	#endif
     return color;

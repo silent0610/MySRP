@@ -337,7 +337,9 @@ public class Shadows
 		var shadowSettings = new ShadowDrawingSettings(
 			cullingResults, light.visibleLightIndex,
 			BatchCullingProjectionType.Perspective
-		);
+		) {
+			useRenderingLayerMaskTest = true
+		};
 		float texelSize = 2f / tileSize;
 		float filterSize = texelSize * ((float)settings.other.filter + 1f);
 		float bias = light.normalBias * filterSize * 1.4142136f;
@@ -389,7 +391,9 @@ public class Shadows
 	void RenderDirectionalShadow(int index, int split, int tileSize)
 	{
 		ShadowedDirectionalLight light = ShadowedDirectionalLights[index];
-		var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex, BatchCullingProjectionType.Orthographic);
+		var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex, BatchCullingProjectionType.Orthographic) {
+			useRenderingLayerMaskTest = true
+		};
 
 		int cascadeCount = settings.directional.cascadeCount;
 		int tileOffset = index * cascadeCount;
@@ -431,7 +435,9 @@ public class Shadows
 		var shadowSettings = new ShadowDrawingSettings(
 			cullingResults, light.visibleLightIndex,
 			BatchCullingProjectionType.Perspective
-		);
+		) {
+			useRenderingLayerMaskTest = true
+		};
 		cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(
 			light.visibleLightIndex, out Matrix4x4 viewMatrix,
 			out Matrix4x4 projectionMatrix, out ShadowSplitData splitData

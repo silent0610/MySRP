@@ -35,6 +35,9 @@ public partial class CameraRenderer {
 		CameraSettings cameraSettings =
 			crpCamera ? crpCamera.Settings : defaultCameraSettings;
 
+		if (cameraSettings.overridePostFX) { 
+			postFXSettings = cameraSettings.postFXSettings;
+		}
 		PrepareBuffer();
 		PrepareForSceneWindow();
 		if (!Cull(shadowSettings.maxDistance)) {
@@ -51,7 +54,7 @@ public partial class CameraRenderer {
 		DrawVisiableGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
 		DrawUnsupportedShaders();
 		DrawGizmosBeforeFX();
-		if (postFXStack.IsActive) {
+		if (postFXStack.IsActive) {//fx
 			postFXStack.Render(frameBufferId);
 		}
 		DrawGizmosAfterFX();
