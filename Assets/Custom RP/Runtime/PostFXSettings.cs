@@ -51,6 +51,8 @@ public class PostFXSettings : ScriptableObject {
 	};
 	public BloomSettings Bloom => bloom;
 
+
+	//颜色分级
 	[Serializable]
 	public struct ColorAdjustmentsSettings {
 		public float postExposure;//后曝光
@@ -74,7 +76,92 @@ public class PostFXSettings : ScriptableObject {
 	};
 	public ColorAdjustmentsSettings ColorAdjustments => colorAdjustments;
 
-	[Serializable]
+	//白平衡
+    [Serializable]
+    public struct WhiteBalanceSettings
+    {
+
+        [Range(-100f, 100f)]
+        public float temperature, tint;
+    }
+
+    [SerializeField]
+    WhiteBalanceSettings whiteBalance = default;
+
+    public WhiteBalanceSettings WhiteBalance => whiteBalance;
+
+	//色调分割,单独调整阴影和镜面反射颜色
+    [Serializable]
+    public struct SplitToningSettings
+    {
+        //这些颜色不会被用于着色计算?
+		//似乎是不带alpha
+        [ColorUsage(false)]
+        public Color shadows, highlights;
+
+        [Range(-100f, 100f)]
+        public float balance;
+    }
+
+    [SerializeField]
+    SplitToningSettings splitToning = new SplitToningSettings
+    {
+        shadows = Color.gray,
+        highlights = Color.gray
+    };
+
+    public SplitToningSettings SplitToning => splitToning;
+
+	//色彩混合
+    [Serializable]
+    public struct ChannelMixerSettings
+    {
+
+        public Vector3 red, green, blue;
+    }
+
+    [SerializeField]
+    ChannelMixerSettings channelMixer = new ChannelMixerSettings
+    {
+        red = Vector3.right,
+        green = Vector3.up,
+        blue = Vector3.forward
+    };
+
+    public ChannelMixerSettings ChannelMixer => channelMixer;
+
+    //阴影\中间色调\高光
+    [Serializable]
+    public struct ShadowsMidtonesHighlightsSettings
+    {
+
+        [ColorUsage(false, true)]
+        public Color shadows, midtones, highlights;
+
+        [Range(0f, 2f)]
+        public float shadowsStart, shadowsEnd, highlightsStart, highLightsEnd;
+    }
+
+    [SerializeField]
+    ShadowsMidtonesHighlightsSettings
+        shadowsMidtonesHighlights = new ShadowsMidtonesHighlightsSettings
+        {
+            shadows = Color.white,
+            midtones = Color.white,
+            highlights = Color.white,
+            shadowsEnd = 0.3f,
+            highlightsStart = 0.55f,
+            highLightsEnd = 1f
+        };
+
+    public ShadowsMidtonesHighlightsSettings ShadowsMidtonesHighlights =>
+        shadowsMidtonesHighlights;
+
+
+
+
+    //色调映射
+    [Serializable]
 	public struct ToneMappingSettings { //Tone Mapping
 		//ReinHard  c/1+c
 		public enum Mode { None ,ACES, Neutral, Reinhard }

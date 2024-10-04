@@ -12,7 +12,13 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset {
 	PostFXSettings postFXSettings = default;
 	[SerializeField]//控制HDR
 	bool allowHDR = true;
+
+	public enum ColorLUTResolution {_16 = 16,_32 = 32,_64 = 64 };
+	[SerializeField]
+	ColorLUTResolution colorLUTResolution = ColorLUTResolution._32;
+	
 	protected override RenderPipeline CreatePipeline() {
-		return new CustomRenderPipeline(allowHDR, useDynamicBatching, useGPUInstancing, useLightsPerObject, useSRPBatcher, shadows, postFXSettings);
+		return new CustomRenderPipeline(allowHDR, useDynamicBatching, useGPUInstancing, 
+			useLightsPerObject, useSRPBatcher, shadows, postFXSettings, (int)colorLUTResolution);
 	}
 }

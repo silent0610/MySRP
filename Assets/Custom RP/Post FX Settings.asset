@@ -16,12 +16,37 @@ MonoBehaviour:
   bloom:
     maxIterations: 1
     downscaleLimit: 8
-    bicubicUpsampling: 0
+    bicubicUpsampling: 1
     threshold: 0.19
-    thresholdKnee: 0.24
-    intensity: 0.62
+    thresholdKnee: 0.232
+    intensity: 0.2
     fadeFireflies: 1
-    mode: 1
-    scatter: 0.49
-  toneMapping:
     mode: 0
+    scatter: 0.557
+  colorAdjustments:
+    postExposure: 0.29
+    contrast: 11.8
+    colorFilter: {r: 1, g: 1, b: 1, a: 1}
+    hueShift: -7
+    saturation: -3.6
+  whiteBalance:
+    temperature: 17.3
+    tint: 0
+  splitToning:
+    shadows: {r: 0.5188679, g: 0.5188679, b: 0.5188679, a: 1}
+    highlights: {r: 0.4811321, g: 0.4811321, b: 0.4811321, a: 1}
+    balance: 30.9
+  channelMixer:
+    red: {x: 1, y: 0, z: 0.333}
+    green: {x: 0, y: 0.5, z: 0.333}
+    blue: {x: 0, y: 0.5, z: 0.333}
+  shadowsMidtonesHighlights:
+    shadows: {r: 1, g: 1, b: 1, a: 1}
+    midtones: {r: 1, g: 1, b: 1, a: 1}
+    highlights: {r: 1, g: 1, b: 1, a: 1}
+    shadowsStart: 0
+    shadowsEnd: 0.3
+    highlightsStart: 0.55
+    highLightsEnd: 1
+  toneMapping:
+    mode: 3

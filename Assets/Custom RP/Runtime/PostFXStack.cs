@@ -30,8 +30,8 @@ public partial class PostFXStack {
 		BloomScatterFinal,
 		BloomVertical,
 		Copy,
-		ToneMappingNone,
-		ToneMappingACES,
+        ColorGradingNone,
+        ToneMappingACES,
 		ToneMappingNeutral,
 		ToneMappingReinhard,
 
@@ -45,12 +45,24 @@ public partial class PostFXStack {
 		bloomResultId = Shader.PropertyToID("_BloomResult"), //存储bloom结果,随后进行色调分级
 		fxSource2Id = Shader.PropertyToID("_PostFXSource2"),
 		colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
-		colorFilterId = Shader.PropertyToID("_ColorFilter");
-		
-	int bloomPyramidId;//第一个纹理的Id
+		colorFilterId = Shader.PropertyToID("_ColorFilter"),
+		whiteBalanceId = Shader.PropertyToID("_WhiteBalance"),
+		splitToningShadowsId = Shader.PropertyToID("_SplitToningShadows"),
+		splitToningHighlightsId = Shader.PropertyToID("_SplitToningHighlights"),
+		channelMixerRedId = Shader.PropertyToID("_ChannelMixerRed"),
+		channelMixerGreenId = Shader.PropertyToID("_ChannelMixerGreen"),
+		channelMixerBlueId = Shader.PropertyToID("_ChannelMixerBlue"),
+		smhShadowsId = Shader.PropertyToID("_SMHShadows"),
+		smhMidtonesId = Shader.PropertyToID("_SMHMidtones"),
+		smhHighlightsId = Shader.PropertyToID("_SMHHighlights"),
+		smhRangeId = Shader.PropertyToID("_SMHRange"),
+		colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUTId");
 
 
-	public PostFXStack() {
+    int bloomPyramidId;//第一个纹理的Id
+    int colorLUTResolution;
+
+    public PostFXStack() {
 		//一次获取所有标识符Id. 只需保存第一个
 		//unity按照请求新属性名的顺序顺序分配标识符,一次获取的Id是连续的
 		bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
@@ -163,17 +175,19 @@ public partial class PostFXStack {
 	}
 
 	public void Setup(
-		ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR
+		ScriptableRenderContext context, Camera camera, PostFXSettings settings,
+		bool useHDR, int colorLUTResolution
 	) {
-		this.context = context;
+        this.colorLUTResolution = colorLUTResolution;
+        this.context = context;
 		this.camera = camera;
 		this.useHDR = useHDR;
 		//检查是否相机渲染Game或Scene视图.如果没有，则将后处理特效资产配置设为空，使得该相机停止渲染后处理特效。
 		this.settings = camera.cameraType <= CameraType.SceneView ? settings : null;
 		ApplySceneViewState();
 	}
-
-	void ConfigureColorAdjustments() {//传递颜色分级参数
+    //传递颜色分级参数
+    void ConfigureColorAdjustments() {
 		ColorAdjustmentsSettings colorAdjustments = settings.ColorAdjustments;
 		buffer.SetGlobalVector(colorAdjustmentsId, new Vector4(
 			Mathf.Pow(2f, colorAdjustments.postExposure),
@@ -183,13 +197,65 @@ public partial class PostFXStack {
 		));
 		buffer.SetGlobalColor(colorFilterId, colorAdjustments.colorFilter.linear);
 	}
+    //配置白平衡
+    void ConfigureWhiteBalance()
+    {
+        WhiteBalanceSettings whiteBalance = settings.WhiteBalance;
+        buffer.SetGlobalVector(whiteBalanceId, ColorUtils.ColorBalanceToLMSCoeffs(
+            whiteBalance.temperature, whiteBalance.tint
+        ));
+    }
+	//色调分离
+    void ConfigureSplitToning()
+    {
+        SplitToningSettings splitToning = settings.SplitToning;
+        Color splitColor = splitToning.shadows;
+        splitColor.a = splitToning.balance * 0.01f;
+        buffer.SetGlobalColor(splitToningShadowsId, splitColor);
+        buffer.SetGlobalColor(splitToningHighlightsId, splitToning.highlights);
+    }
+    void ConfigureChannelMixer()
+    {
+        ChannelMixerSettings channelMixer = settings.ChannelMixer;
+        buffer.SetGlobalVector(channelMixerRedId, channelMixer.red);
+        buffer.SetGlobalVector(channelMixerGreenId, channelMixer.green);
+        buffer.SetGlobalVector(channelMixerBlueId, channelMixer.blue);
+    }
 
-	void DoColorGradingAndToneMapping(int sourceId) {//颜色分级与色调映射
+    void ConfigureShadowsMidtonesHighlights()
+    {
+        ShadowsMidtonesHighlightsSettings smh = settings.ShadowsMidtonesHighlights;
+        buffer.SetGlobalColor(smhShadowsId, smh.shadows.linear);
+        buffer.SetGlobalColor(smhMidtonesId, smh.midtones.linear);
+        buffer.SetGlobalColor(smhHighlightsId, smh.highlights.linear);
+        buffer.SetGlobalVector(smhRangeId, new Vector4(
+            smh.shadowsStart, smh.shadowsEnd, smh.highlightsStart, smh.highLightsEnd
+        ));
+    }
+
+    void DoColorGradingAndToneMapping(int sourceId) {//颜色分级与色调映射
 		ConfigureColorAdjustments();
-		ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
-		Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingNone + (int)mode;
-		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, pass);
-	}
+        ConfigureWhiteBalance();
+        ConfigureSplitToning();
+        ConfigureChannelMixer();
+        ConfigureShadowsMidtonesHighlights();
+        
+		//LUT
+		int lutHeight = colorLUTResolution;
+        int lutWidth = lutHeight * lutHeight;
+        buffer.GetTemporaryRT(
+            colorGradingLUTId, lutWidth, lutHeight, 0,
+            FilterMode.Bilinear, RenderTextureFormat.DefaultHDR
+        );
+
+        ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+
+        Pass pass = Pass.ColorGradingNone + (int)mode;//绘制到LUT而不是相机目标
+        Draw(sourceId, colorGradingLUTId, pass);
+
+        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+        buffer.ReleaseTemporaryRT(colorGradingLUTId);
+    }
 	public void Render(int sourceId) {
 		//只需使用适当的着色器绘制一个覆盖整个图像的矩形，即可将效果应用于整个图像。
 		//Blit 将sourceId的内容复制到BuiltinRenderTextureType.CameraTarget,

@@ -83,12 +83,12 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
 		Pass {
-			Name "ToneMappingNone"
+			Name "Color Grading None"
 			
 			HLSLPROGRAM
 				#pragma target 3.5
 				#pragma vertex DefaultPassVertex
-				#pragma fragment ToneMappingNonePassFragment
+				#pragma fragment ColorGradingNonePassFragment
 			ENDHLSL
 		}
 		Pass {
