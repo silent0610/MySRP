@@ -34,7 +34,7 @@ public partial class PostFXStack {
         ToneMappingACES,
 		ToneMappingNeutral,
 		ToneMappingReinhard,
-
+		Final
 	};
 	int
 		bloomBucibicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
@@ -56,10 +56,13 @@ public partial class PostFXStack {
 		smhMidtonesId = Shader.PropertyToID("_SMHMidtones"),
 		smhHighlightsId = Shader.PropertyToID("_SMHHighlights"),
 		smhRangeId = Shader.PropertyToID("_SMHRange"),
-		colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUTId");
+		colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),
+		colorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters"),
+		colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLog");
 
 
-    int bloomPyramidId;//第一个纹理的Id
+
+	int bloomPyramidId;//第一个纹理的Id
     int colorLUTResolution;
 
     public PostFXStack() {
@@ -247,13 +250,20 @@ public partial class PostFXStack {
             colorGradingLUTId, lutWidth, lutHeight, 0,
             FilterMode.Bilinear, RenderTextureFormat.DefaultHDR
         );
-
-        ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+		buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
+			lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)));
+		ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
 
         Pass pass = Pass.ColorGradingNone + (int)mode;//绘制到LUT而不是相机目标
-        Draw(sourceId, colorGradingLUTId, pass);
-
-        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+		buffer.SetGlobalFloat(
+			colorGradingLUTInLogId, useHDR && pass != Pass.ColorGradingNone ? 1f : 0f
+		);
+		Draw(sourceId, colorGradingLUTId, pass);
+		
+		buffer.SetGlobalVector(colorGradingLUTParametersId, //不是很明白这些参数作用
+			new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f)
+		);
+		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Final);
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 	public void Render(int sourceId) {

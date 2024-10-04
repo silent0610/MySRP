@@ -21,6 +21,7 @@ struct Varyings {
 TEXTURE2D(_PostFXSource);//中间帧缓冲区的数据
 TEXTURE2D(_PostFXSource2);
 SAMPLER(sampler_linear_clamp);
+TEXTURE2D(_ColorGradingLUT);//LUT贴图
 
 float Luminance (float3 color, bool useACES) {
 	return useACES ? AcesLuminance(color) : Luminance(color);
@@ -241,7 +242,7 @@ float3 ColorGradingShadowsMidtonesHighlights (float3 color,bool useACES) {
 
 //颜色分级
 float3 ColorGrade (float3 color,bool useACES = false) {
-	color = min(color, 60.0);//限制在60,避免精度问题
+	//color = min(color, 60.0);//限制在60,避免精度问题.不再依赖渲染图像,故不需要限制
 	color = ColorGradePostExposure(color);
 	color = ColorGradeWhiteBalance(color);
 	color = ColorGradingContrast(color, useACES);
@@ -255,29 +256,47 @@ float3 ColorGrade (float3 color,bool useACES = false) {
 	color = ColorGradingSaturation(color,useACES); //这可能再次产生负值
 	return max(useACES ? ACEScg_to_ACES(color) : color, 0.0);
 }
-float4 ColorGradingNonePassFragment (Varyings input) : SV_TARGET {
+
+float4 _ColorGradingLUTParameters;
+bool _ColorGradingLUTInLogC;
+float3 GetColorGradedLUT (float2 uv, bool useACES = false) { //通过uv坐标获取颜色
+	float3 color = GetLutStripValue(uv, _ColorGradingLUTParameters);
+	return ColorGrade(_ColorGradingLUTInLogC ? LogCToLinear(color) : color, useACES); //将0-1线性颜色转换为对数颜色0-59
+}
+
+
+float3 ApplyColorGradingLUT(float3 color){
+	return ApplyLut2D(
+		TEXTURE2D_ARGS(_ColorGradingLUT, sampler_linear_clamp),
+		saturate(_ColorGradingLUTInLogC ? LinearToLogC(color) : color),
+		_ColorGradingLUTParameters.xyz
+	);
+}
+float4 FinalPassFragment (Varyings input) : SV_TARGET {
 	float4 color = GetSource(input.screenUV);
-	color.rgb = ColorGrade(color.rgb);
+	color.rgb = ApplyColorGradingLUT(color.rgb);
 	return color;
 }
 
+float4 ColorGradingNonePassFragment (Varyings input) : SV_TARGET {
+	float3 color = GetColorGradedLUT(input.screenUV);
+	return float4(color, 1.0);
+}
+
 float4 ToneMappingReinhardPassFragment (Varyings input) : SV_TARGET {
-	float4 color = GetSource(input.screenUV);
-	color.rgb = ColorGrade(color.rgb);
-	color.rgb /= color.rgb + 1.0;
-	return color;
+	float3 color = GetColorGradedLUT(input.screenUV);
+	color /= color + 1.0;
+	return float4(color, 1.0);
 }
 float4 ToneMappingNeutralPassFragment (Varyings input) : SV_TARGET {
-	float4 color = GetSource(input.screenUV);
-	color.rgb = ColorGrade(color.rgb);
-	color.rgb = NeutralTonemap(color.rgb);
-	return color;
+	float3 color = GetColorGradedLUT(input.screenUV);
+	color = NeutralTonemap(color);
+	return float4(color, 1.0);
 }
 float4 ToneMappingACESPassFragment (Varyings input) : SV_TARGET {
-	float4 color = GetSource(input.screenUV);
-	color.rgb = ColorGrade(color.rgb, true);
-	color.rgb = AcesTonemap(color.rgb);
-	return color;
+	float3 color = GetColorGradedLUT(input.screenUV,true);
+	color = AcesTonemap(color);
+	return float4(color, 1.0);
 }
 
 
