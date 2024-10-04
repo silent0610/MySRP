@@ -176,7 +176,19 @@ public partial class PostFXStack {
 		buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 		buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)pass, MeshTopology.Triangles, 3);
 	}
-
+	//static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
+	void DrawFinal(RenderTargetIdentifier from) {
+		buffer.SetGlobalTexture(fxSourceId, from);
+		buffer.SetRenderTarget(
+			BuiltinRenderTextureType.CameraTarget,
+			RenderBufferLoadAction.Load,
+			RenderBufferStoreAction.Store
+		);
+		buffer.SetViewport(camera.pixelRect);
+		buffer.DrawProcedural(Matrix4x4.identity, settings.Material, 
+			(int)Pass.Final, MeshTopology.Triangles, 3
+		);
+	}
 	public void Setup(
 		ScriptableRenderContext context, Camera camera, PostFXSettings settings,
 		bool useHDR, int colorLUTResolution
@@ -263,7 +275,7 @@ public partial class PostFXStack {
 		buffer.SetGlobalVector(colorGradingLUTParametersId, //不是很明白这些参数作用
 			new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f)
 		);
-		Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Final);
+		DrawFinal(sourceId);
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 	public void Render(int sourceId) {
