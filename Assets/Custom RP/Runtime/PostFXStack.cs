@@ -64,8 +64,13 @@ public partial class PostFXStack {
 
 	int bloomPyramidId;//第一个纹理的Id
     int colorLUTResolution;
+	CameraSettings.FinalBlendMode finalBlendMode;
+	int
+		finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
+		finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
 
-    public PostFXStack() {
+
+	public PostFXStack() {
 		//一次获取所有标识符Id. 只需保存第一个
 		//unity按照请求新属性名的顺序顺序分配标识符,一次获取的Id是连续的
 		bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
@@ -176,12 +181,15 @@ public partial class PostFXStack {
 		buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 		buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)pass, MeshTopology.Triangles, 3);
 	}
-	//static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
+	static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
 	void DrawFinal(RenderTargetIdentifier from) {
+		buffer.SetGlobalFloat(finalSrcBlendId, (float)finalBlendMode.source);
+		buffer.SetGlobalFloat(finalDstBlendId, (float)finalBlendMode.destination);
 		buffer.SetGlobalTexture(fxSourceId, from);
 		buffer.SetRenderTarget(
 			BuiltinRenderTextureType.CameraTarget,
-			RenderBufferLoadAction.Load,
+			finalBlendMode.destination == BlendMode.Zero && camera.rect == fullViewRect ?
+				RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
 			RenderBufferStoreAction.Store
 		);
 		buffer.SetViewport(camera.pixelRect);
@@ -191,8 +199,9 @@ public partial class PostFXStack {
 	}
 	public void Setup(
 		ScriptableRenderContext context, Camera camera, PostFXSettings settings,
-		bool useHDR, int colorLUTResolution
+		bool useHDR, int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode
 	) {
+		this.finalBlendMode = finalBlendMode;
         this.colorLUTResolution = colorLUTResolution;
         this.context = context;
 		this.camera = camera;

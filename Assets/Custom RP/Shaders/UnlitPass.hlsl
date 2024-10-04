@@ -10,6 +10,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
     UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
     UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
     UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
+    UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 //float3 GetEmission (float2 baseUV) 
@@ -37,6 +38,11 @@ Varyings UnlitPassVertex(Attributes input) {
     output.baseUV = input.baseUV * baseST.xy + baseST.zw;
     return output;
 }
+#define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
+float GetFinalAlpha (float alpha) {
+	return INPUT_PROP(_ZWrite) ? 1.0 : alpha;
+}
+
 float4 UnlitPassFragment(Varyings input) : SV_TARGET {
     UNITY_SETUP_INSTANCE_ID(input);
     float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
@@ -45,7 +51,7 @@ float4 UnlitPassFragment(Varyings input) : SV_TARGET {
     #if defined(_CLIPPING)
         clip(base.a-UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Cutoff));
     #endif
-    return base;
+    return float4(base.rgb, GetFinalAlpha(base.a));
 }
 
 

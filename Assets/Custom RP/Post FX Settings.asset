@@ -20,7 +20,7 @@ MonoBehaviour:
     threshold: 0.19
     thresholdKnee: 0.232
     intensity: 0.11
-    fadeFireflies: 1
+    fadeFireflies: 0
     mode: 0
     scatter: 0.557
   colorAdjustments:

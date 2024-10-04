@@ -40,7 +40,8 @@ Shader "Custom RP/Lit" {
 
         Pass {
             Tags { "LightMode" = "CustomLit" }
-            Blend [_SrcBlend] [_DstBlend]
+            Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha 
+            //颜色混合使用材质中的 _SrcBlend 和 _DstBlend 控制，而 Alpha 通道使用固定的 One 和 OneMinusSrcAlpha 混合因子，这使得颜色和 Alpha 的混合规则可以分开。
             ZWrite [_ZWrite]
             HLSLPROGRAM
             //声明关键字

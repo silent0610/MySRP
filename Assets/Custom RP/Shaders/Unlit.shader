@@ -10,7 +10,7 @@ Shader "Custom RP/Unlit" {
     }
     SubShader {
         Pass {
-            Blend [_SrcBlend] [_DstBlend]
+            Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha
             HLSLPROGRAM
             #pragma target 3.5
             #pragma shader_feature _CLIPPING
