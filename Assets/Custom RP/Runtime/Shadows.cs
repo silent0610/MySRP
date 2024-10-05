@@ -309,7 +309,7 @@ public class Shadows
 		int tileSize = atlasSize / split;
 
 		for (int i = 0; i < shadowedOtherLightCount;)
-		{ //i++) {
+		{ 
 			if (shadowedOtherLights[i].isPoint)
 			{
 				RenderPointShadows(i, split, tileSize);

@@ -78,6 +78,52 @@ struct ShadowData {
     ShadowMask shadowMask;
 };
 
+float FadedShadowStrength(float distance, float scale, float fade) {
+    return saturate((1.0 - distance * scale) * fade);
+}
+//得到世界空间的表面阴影数据,比如控制阴影过渡,级联强度
+ShadowData GetShadowData(Surface surfaceWS) {
+    ShadowData data;
+    data.cascadeBlend = 1.0;
+    data.shadowMask.always = false;
+    data.shadowMask.distance = false;
+    data.shadowMask.shadows = 1.0;
+    data.strength = FadedShadowStrength(
+        surfaceWS.depth, _ShadowDistanceFade.x, _ShadowDistanceFade.y
+    );
+    int i;
+    for (i = 0; i < _CascadeCount; i++) {
+        float4 sphere = _CascadeCullingSpheres[i];
+        float distanceSqr = DistanceSquared(surfaceWS.position, sphere.xyz);
+        if (distanceSqr < sphere.w) {
+            //公式计算阴影过渡时的强度
+            float fade = FadedShadowStrength(
+                distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z
+            );
+            if (i == _CascadeCount - 1) {
+                data.strength *= fade;
+            } else {
+                data.cascadeBlend = fade;
+            }
+            break;
+        }
+    }
+    //如果超出最大级联范围且级联数量大于0，将全局阴影强度设为0(不进行阴影采样)  
+    if (i == _CascadeCount && _CascadeCount > 0) {
+        data.strength = 0.0;
+    }
+    #if defined(_CASCADE_BLEND_DITHER)
+    else if (data.cascadeBlend < surfaceWS.dither) 
+    {
+        i += 1;
+    }
+    #endif
+    #if !defined(_CASCADE_BLEND_SOFT)
+		data.cascadeBlend = 1.0;
+	#endif
+    data.cascadeIndex = i;
+    return data;
+}
 
 
 //得到烘焙阴影的衰减值
