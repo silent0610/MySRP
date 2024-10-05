@@ -8,6 +8,11 @@ partial class CameraRenderer {
 	partial void DrawUnsupportedShaders();
 	partial void PrepareForSceneWindow();
 	partial void PrepareBuffer();
+
+	partial void DisposeForEditor();
+
+
+
 #if UNITY_EDITOR
 	static ShaderTagId[] legacyShaderTagIds = {
 		new ShaderTagId("Always"),
@@ -20,6 +25,8 @@ partial class CameraRenderer {
 	static Material errorMaterial;
 
 	string SampleName { get; set; }
+
+
 
 	partial void PrepareBuffer() {
 		Profiler.BeginSample("Editor Only");

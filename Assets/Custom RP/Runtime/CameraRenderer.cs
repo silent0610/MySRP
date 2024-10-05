@@ -25,16 +25,29 @@ public partial class CameraRenderer {
 	static int
 		colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"), 
 		depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
-		depthTextureId = Shader.PropertyToID("_CameraDepthTexture");
+		depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
+		sourceTextureId = Shader.PropertyToID("_SourceTexture"); //colorAttachment 保存的位置,使用别名可能是为了安全?
+
+	//通过Shader.PropertyToID 就已经获取了shader中的属性ID,以及对应的数据保存位置,可以不需要在shader
+	//中声明,在cpu端仍能使用.但是如果想要在shader中使用,则需要在shader中声明.
+	//此外,如果这是纹理,需要在cpu中使用setglobaltexture方法,在shader中使用sampler2D才能对其进行采样
+	//但仍能绘制到屏幕上,因为这是一个渲染目标(被cpu控制)
 	static CameraSettings defaultCameraSettings = new CameraSettings();//默认相机设置
 
 	bool useDepthTexture,useIntermediateBuffer;
 
 	bool useHDR;
 
+	Material material;
 
+	public CameraRenderer(Shader shader) {
+		material = CoreUtils.CreateEngineMaterial(shader);
+	}
 
-	
+	public void Dispose() {
+		CoreUtils.Destroy(material);
+	}
+
 	/// <summary>
 	/// 复制深度缓冲区
 	/// </summary>
@@ -48,7 +61,16 @@ public partial class CameraRenderer {
 		ExecuteBuffer();
 	}
 }
-
+	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to) {
+		buffer.SetGlobalTexture(sourceTextureId, from);
+		buffer.SetRenderTarget(
+			to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+		);
+		buffer.DrawProcedural(
+			Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3
+		);
+		//material 对应的shader的 pass0
+	}
 
 	public void Render(ScriptableRenderContext context, Camera camera,bool allowHDR, 
 		bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
@@ -86,6 +108,10 @@ public partial class CameraRenderer {
 		DrawGizmosBeforeFX();
 		if (postFXStack.IsActive) {//fx
 			postFXStack.Render(colorAttachmentId);
+		}
+		else if (useIntermediateBuffer) {
+			Draw(colorAttachmentId, BuiltinRenderTextureType.CameraTarget);
+			ExecuteBuffer();
 		}
 		DrawGizmosAfterFX();
 		Cleanup();
