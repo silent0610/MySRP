@@ -40,8 +40,8 @@ public class CustomShaderGUI : ShaderGUI {
 		if (showPresets) {
 			OpaquePreset();
 			ClipPreset();
-			FadePreset();
-			TransparentPreset();
+			FadePreset(); // 整体淡出,透明
+			TransparentPreset(); // 应用预乘alpha 类似玻璃
 		}
 		if (EditorGUI.EndChangeCheck()) {
 			SetShadowCasterPass();

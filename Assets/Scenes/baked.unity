@@ -140,7 +140,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &87018348
 Transform:
@@ -212,7 +212,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -263,7 +263,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &165225146
 Transform:
@@ -335,7 +335,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -474,6 +474,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    renderingLayerMask: 2
+    maskLights: 1
     overridePostFX: 1
     postFXSettings: {fileID: 11400000, guid: ec9b599a231db0040a4efd644c60447d, type: 2}
     finalBlendMode:
@@ -497,7 +499,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!64 &350986557
 MeshCollider:
@@ -538,7 +540,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 3
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -580,7 +582,7 @@ Transform:
   m_GameObject: {fileID: 350986556}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.7270254, y: -1.8275138, z: 2.924592}
+  m_LocalPosition: {x: 0.28, y: -1.8275138, z: 1.98}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -726,7 +728,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 64
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &585018416
 Transform:
@@ -798,7 +800,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -1182,7 +1184,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!135 &851451128
 SphereCollider:
@@ -1222,7 +1224,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: fe803c0d572f41244892785be36e2ed8, type: 2}
@@ -1305,7 +1307,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &911321460
 Transform:
@@ -1379,7 +1381,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -1430,7 +1432,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &1158070678
 Transform:
@@ -1502,7 +1504,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -1804,7 +1806,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -1846,7 +1848,7 @@ Transform:
   m_GameObject: {fileID: 1386548517}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.01, y: -0.183, z: 0.71}
+  m_LocalPosition: {x: -0.126, y: -0.183, z: 0.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1866,9 +1868,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
-  alphaCutoff: 0.5
-  metallic: 0.728
-  smoothness: 1
+  alphaCutoff: 0.551
+  metallic: 0.605
+  smoothness: 0.678
 --- !u!1 &1390032158
 GameObject:
   m_ObjectHideFlags: 0
@@ -1979,7 +1981,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &1393756396
 Light:
   m_ObjectHideFlags: 0
@@ -2029,7 +2031,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 54
+    m_Bits: 4294967295
   m_RenderingLayerMask: 1
   m_Lightmapping: 1
   m_LightShadowCasterMode: 0
@@ -2051,7 +2053,7 @@ Transform:
   m_GameObject: {fileID: 1393756395}
   serializedVersion: 2
   m_LocalRotation: {x: 0.22174107, y: -0.25190693, z: 0.05941533, w: 0.9401296}
-  m_LocalPosition: {x: 7.65, y: -0.17, z: -2.13}
+  m_LocalPosition: {x: 4.49, y: -0.78, z: -2.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2075,7 +2077,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 65
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &1411509383
 Transform:
@@ -2149,7 +2151,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -2214,6 +2216,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    renderingLayerMask: -1
+    maskLights: 0
     overridePostFX: 1
     postFXSettings: {fileID: 0}
     finalBlendMode:
@@ -2400,12 +2404,12 @@ GameObject:
   - component: {fileID: 1532217728}
   - component: {fileID: 1532217727}
   - component: {fileID: 1532217731}
-  m_Layer: 4
+  m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 64
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!135 &1532217727
 SphereCollider:
@@ -2445,7 +2449,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -2528,7 +2532,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 64
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &1588679317
 Transform:
@@ -2600,7 +2604,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 50c64db0ae7cacc4d9d240b94db627d5, type: 2}
@@ -2700,7 +2704,7 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 127
   m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
@@ -2721,7 +2725,7 @@ Transform:
   m_GameObject: {fileID: 1662098884}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 2.74, y: 4.78, z: 3.02}
+  m_LocalPosition: {x: 2.63, y: 4.78, z: 1.96}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2814,7 +2818,7 @@ Transform:
   m_GameObject: {fileID: 1684550623}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalPosition: {x: -0.54, y: 10, z: 0.23}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2833,6 +2837,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    renderingLayerMask: 1
+    maskLights: 1
     overridePostFX: 1
     postFXSettings: {fileID: 0}
     finalBlendMode:
@@ -2909,7 +2915,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 95.5
+  m_Intensity: 5.3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2918,9 +2924,9 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.23
-    m_Bias: 0.071
-    m_NormalBias: 0
+    m_Strength: 1
+    m_Bias: 0.733
+    m_NormalBias: 1.43
     m_NearPlane: 0.1
     m_CullingMatrixOverride:
       e00: 1
@@ -2947,11 +2953,11 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 2147483647
+  m_RenderingLayerMask: 2
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 0.09
+  m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: -9.1716397e-38}
@@ -2968,7 +2974,7 @@ Transform:
   m_GameObject: {fileID: 1800660202}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.13, y: 2.53, z: 0.2}
+  m_LocalPosition: {x: 2.85, y: 0.235, z: -0.09}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

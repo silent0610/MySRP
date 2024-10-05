@@ -3,6 +3,7 @@ Shader "Custom RP/Lit" {
         _BaseMap ("Texture", 2D) = "white" { }
         _BaseColor ("Color", color) = (0.5, 0.5, 0.5, 1.0)
         _Cutoff ("Alpha Cutoff", range(0.0, 1.0)) = 0.5
+        [Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
         [KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
         [Toggle(_PREMULTIPLY_ALPHA)] _PremulAlpha ("Premultiply Alpha", Float) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
