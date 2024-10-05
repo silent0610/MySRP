@@ -3,12 +3,24 @@
 
 struct Attributes {
 	float3 positionOS : POSITION;
-	float2 baseUV : TEXCOORD0;
+	float4 color: COLOR; //顶点色
+	#if defined(_FLIPBOOK_BLENDING)
+		float4 baseUV : TEXCOORD0; //baseuv1+2 放在一个向量中?
+		float flipbookBlend : TEXCOORD1; //混合系数
+	#else
+		float2 baseUV : TEXCOORD0;
+	#endif
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings {
 	float4 positionCS : SV_POSITION;
+	#if defined(_VERTEX_COLORS)
+		float4 color : VAR_COLOR;
+	#endif
+    #if defined(_FLIPBOOK_BLENDING) 
+		float3 flipbookUVB:VAR_FLIPBOOK;
+	#endif
 	float2 baseUV : VAR_BASE_UV;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -17,9 +29,16 @@ Varyings UnlitPassVertex (Attributes input) {
 	Varyings output;
 	UNITY_SETUP_INSTANCE_ID(input);
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
+	#if defined(_VERTEX_COLORS)
+		output.color = input.color;
+	#endif
 	float3 positionWS = TransformObjectToWorld(input.positionOS);
 	output.positionCS = TransformWorldToHClip(positionWS);
-	output.baseUV = TransformBaseUV(input.baseUV);
+	output.baseUV.xy = TransformBaseUV(input.baseUV.xy);
+	#if defined(_FLIPBOOK_BLENDING)
+		output.flipbookUVB.xy = TransformBaseUV(input.baseUV.zw);
+		output.flipbookUVB.z = input.flipbookBlend;
+	#endif
 	return output;
 }
 
@@ -27,6 +46,14 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
 
 	InputConfig config = GetInputConfig(input.baseUV);
+	#if defined(_VERTEX_COLORS)
+		config.color = input.color;
+	#endif
+	#if defined(_FLIPBOOK_BLENDING)
+		config.flipbookUVB = input.flipbookUVB;
+		config.flipbookBlending = true;
+	#endif
+
 	float4 base = GetBase(config);
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(config));

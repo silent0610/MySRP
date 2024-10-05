@@ -14,12 +14,18 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
 
 struct InputConfig {
+	float4 color;
 	float2 baseUV;
+	float3 flipbookUVB; //指示是否使用flipbook
+	bool flipbookBlending; 
 };
 
 InputConfig GetInputConfig (float2 baseUV) {
 	InputConfig c;
+	c.color = 1.0;
 	c.baseUV = baseUV;
+	c.flipbookUVB = 0.0;
+	c.flipbookBlending = false; 
 	return c;
 }
 
@@ -42,8 +48,14 @@ float4 GetDetail (InputConfig c) {
 
 float4 GetBase (InputConfig c) {
 	float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.baseUV);
+	
+	if(c.flipbookBlending){
+		baseMap = lerp(baseMap,SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,c.flipbookUVB.xy),
+			c.flipbookUVB.z
+		);
+	}
 	float4 baseColor = INPUT_PROP(_BaseColor);
-	return baseMap * baseColor;
+	return baseMap * baseColor * c.color; //乘顶点色?
 }
 
 float GetFinalAlpha (float alpha) {
