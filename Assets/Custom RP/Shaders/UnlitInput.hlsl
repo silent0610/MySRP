@@ -14,14 +14,16 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
 
 struct InputConfig {
+	Fragment fragment;
 	float4 color;
 	float2 baseUV;
 	float3 flipbookUVB; //指示是否使用flipbook
 	bool flipbookBlending; 
 };
 
-InputConfig GetInputConfig (float2 baseUV) {
+InputConfig GetInputConfig (float4 positionSS,float2 baseUV) {
 	InputConfig c;
+	c.fragment = GetFragment(positionSS);
 	c.color = 1.0;
 	c.baseUV = baseUV;
 	c.flipbookUVB = 0.0;

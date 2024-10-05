@@ -14,13 +14,13 @@ float4 _SMHShadows, _SMHMidtones, _SMHHighlights, _SMHRange;
 
 
 struct Varyings {
-	float4 positionCS : SV_POSITION;
+	float4 positionCS_SS : SV_POSITION;
 	float2 screenUV : VAR_SCREEN_UV;
 };
 
 TEXTURE2D(_PostFXSource);//中间帧缓冲区的数据
 TEXTURE2D(_PostFXSource2);
-SAMPLER(sampler_linear_clamp);
+
 TEXTURE2D(_ColorGradingLUT);//LUT贴图
 
 float Luminance (float3 color, bool useACES) {
@@ -47,7 +47,7 @@ float4 GetSource2(float2 screenUV) {
 Varyings DefaultPassVertex (uint vertexID : SV_VertexID) {
 	Varyings output;
 	// 三角形三个顶点的位置,(-1,-1),(-1,3),(3,-1)
-	output.positionCS = float4(
+	output.positionCS_SS = float4(
 		vertexID <= 1 ? -1.0 : 3.0,
 		vertexID == 1 ? 3.0 : -1.0,
 		0.0, 1.0

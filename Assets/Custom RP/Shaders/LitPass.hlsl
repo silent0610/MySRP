@@ -21,7 +21,7 @@ struct Attributes {
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 struct Varyings {
-    float4 positionCS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION;
     float3 positionWS : VAR_POSITION;
     float2 baseUV : VAR_BASE_UV;
 	#if defined(_DETAIL_MAP)
@@ -43,7 +43,7 @@ Varyings LitPassVertex(Attributes input) {
     TRANSFER_GI_DATA(input, output);
     //计算位置
     output.positionWS = TransformObjectToWorld(input.positionOS);
-    output.positionCS = TransformWorldToHClip(output.positionWS);
+    output.positionCS_SS = TransformWorldToHClip(output.positionWS);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
     //贴图位置
     output.baseUV = TransformBaseUV(input.baseUV);
@@ -60,8 +60,9 @@ Varyings LitPassVertex(Attributes input) {
 float4 LitPassFragment(Varyings input) : SV_TARGET {
     
     UNITY_SETUP_INSTANCE_ID(input);
-    ClipLOD(input.positionCS.xy, unity_LODFade.x); //LOD裁剪
-    InputConfig config = GetInputConfig(input.baseUV);
+    
+    InputConfig config = GetInputConfig(input.positionCS_SS,input.baseUV);
+    ClipLOD(config.fragment, unity_LODFade.x); //LOD裁剪
     // 是否使用sMASK，detailmap，裁剪等
     #if defined(_MASK_MAP)
 		config.useMask = true;
@@ -83,7 +84,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     surface.metallic = GetMetallic(config);
     surface.smoothness = GetSmoothness(config);
     surface.fresnelStrength = GetFresnel(config);
-    surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+    surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
     surface.occlusion = GetOcclusion(config);
     surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
     //是否使用法线贴图

@@ -12,9 +12,10 @@ struct Attributes {
 	#endif
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
-
+//在顶点函数中,SV_POSITION 表示顶点的剪辑空间位置,四维齐次坐标
+//但是在fragment函数中 SV_POSITION 表示片段的屏幕空间坐标
 struct Varyings {
-	float4 positionCS : SV_POSITION;
+	float4 positionCS_SS : SV_POSITION; //片元的屏幕空间坐标,空间转换由GPU执行
 	#if defined(_VERTEX_COLORS)
 		float4 color : VAR_COLOR;
 	#endif
@@ -33,7 +34,7 @@ Varyings UnlitPassVertex (Attributes input) {
 		output.color = input.color;
 	#endif
 	float3 positionWS = TransformObjectToWorld(input.positionOS);
-	output.positionCS = TransformWorldToHClip(positionWS);
+	output.positionCS_SS = TransformWorldToHClip(positionWS);
 	output.baseUV.xy = TransformBaseUV(input.baseUV.xy);
 	#if defined(_FLIPBOOK_BLENDING)
 		output.flipbookUVB.xy = TransformBaseUV(input.baseUV.zw);
@@ -45,7 +46,7 @@ Varyings UnlitPassVertex (Attributes input) {
 float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
 
-	InputConfig config = GetInputConfig(input.baseUV);
+	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
 	#if defined(_VERTEX_COLORS)
 		config.color = input.color;
 	#endif
@@ -58,6 +59,7 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(config));
 	#endif
+	return float4(float3(1,1,1), GetFinalAlpha(base.a));
 	return float4(base.rgb, GetFinalAlpha(base.a));
 }
 
