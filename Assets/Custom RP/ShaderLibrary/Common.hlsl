@@ -24,6 +24,16 @@
 SAMPLER(sampler_linear_clamp); //这些采样器都是预先定义好的,在这里只是声明
 SAMPLER(sampler_point_clamp);
 
+bool IsOrthographicCamera () { //判断是否是正交相机
+	return unity_OrthoParams.w; //存储是否正交,是为1
+}
+//将正交相机的的深度值转为视图空间深度
+float OrthographicDepthBufferToLinear (float rawDepth) {
+	#if UNITY_REVERSED_Z //即越远越小
+		rawDepth = 1.0 - rawDepth;
+	#endif
+	return (_ProjectionParams.z - _ProjectionParams.y) * rawDepth + _ProjectionParams.y;
+}
 #include "Fragment.hlsl"
 
 float3 DecodeNormal(float4 sample,float scale){
@@ -47,4 +57,6 @@ void ClipLOD(Fragment fragment,float fade){
     #endif 
 
 }
+
+
 #endif

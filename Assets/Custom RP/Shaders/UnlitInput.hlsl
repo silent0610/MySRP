@@ -1,12 +1,17 @@
 #ifndef CUSTOM_LIT_INPUT_INCLUDED
 #define CUSTOM_LIT_INPUT_INCLUDED
 
-TEXTURE2D(_BaseMap);
+
+//shader(material)的纹理贴图由需要由 TEXTURE2D 声明到GPU
+
+TEXTURE2D(_BaseMap); 
 SAMPLER(sampler_BaseMap);
 
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)//shader(material)属性值由实例化缓冲区传递到GPU
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
+	UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeDistance)
+	UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeRange)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -19,6 +24,7 @@ struct InputConfig {
 	float2 baseUV;
 	float3 flipbookUVB; //指示是否使用flipbook
 	bool flipbookBlending; 
+	bool nearFade;
 };
 
 InputConfig GetInputConfig (float4 positionSS,float2 baseUV) {
@@ -28,6 +34,7 @@ InputConfig GetInputConfig (float4 positionSS,float2 baseUV) {
 	c.baseUV = baseUV;
 	c.flipbookUVB = 0.0;
 	c.flipbookBlending = false; 
+	c.nearFade = false;
 	return c;
 }
 
@@ -55,6 +62,11 @@ float4 GetBase (InputConfig c) {
 		baseMap = lerp(baseMap,SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,c.flipbookUVB.xy),
 			c.flipbookUVB.z
 		);
+	}
+	if (c.nearFade) {
+		float nearAttenuation = (c.fragment.depth - INPUT_PROP(_NearFadeDistance)) /
+			INPUT_PROP(_NearFadeRange);
+		baseMap.a *= saturate(nearAttenuation);
 	}
 	float4 baseColor = INPUT_PROP(_BaseColor);
 	return baseMap * baseColor * c.color; //乘顶点色?

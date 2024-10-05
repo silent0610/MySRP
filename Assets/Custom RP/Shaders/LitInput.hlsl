@@ -10,7 +10,7 @@ TEXTURE2D(_NormalMap);
 TEXTURE2D(_DetailNormalMap);
 
 
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+UNITY_INSTANCING_BUFFER_START(UnityPerMaterial) //shader(material)属性值由实例化缓冲区传递到GPU
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)//ST变量由UNITY赋值？
 UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)

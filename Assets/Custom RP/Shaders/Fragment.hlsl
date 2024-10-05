@@ -9,7 +9,9 @@ struct Fragment {
 Fragment GetFragment (float4 positionSS) {
 	Fragment f;
 	f.positionSS = positionSS.xy;
-	f.depth = positionSS.w;
+	f.depth  = positionSS.w;
+	f.depth = IsOrthographicCamera() ?
+		OrthographicDepthBufferToLinear(positionSS.z) : positionSS.w;
 	return f;
 }
 

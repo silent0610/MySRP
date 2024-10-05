@@ -54,12 +54,14 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 		config.flipbookUVB = input.flipbookUVB;
 		config.flipbookBlending = true;
 	#endif
-
+	#if defined(_NEAR_FADE)
+		config.nearFade = true;
+	#endif
 	float4 base = GetBase(config);
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(config));
 	#endif
-	return float4(float3(1,1,1), GetFinalAlpha(base.a));
+	
 	return float4(base.rgb, GetFinalAlpha(base.a));
 }
 

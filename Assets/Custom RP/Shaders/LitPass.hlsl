@@ -62,6 +62,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET {
     UNITY_SETUP_INSTANCE_ID(input);
     
     InputConfig config = GetInputConfig(input.positionCS_SS,input.baseUV);
+
     ClipLOD(config.fragment, unity_LODFade.x); //LOD裁剪
     // 是否使用sMASK，detailmap，裁剪等
     #if defined(_MASK_MAP)
