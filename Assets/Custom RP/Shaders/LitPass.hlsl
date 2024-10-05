@@ -21,7 +21,7 @@ struct Attributes {
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 struct Varyings {
-    float4 positionCS_SS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION; //基本仅用于确定片元位置
     float3 positionWS : VAR_POSITION;
     float2 baseUV : VAR_BASE_UV;
 	#if defined(_DETAIL_MAP)

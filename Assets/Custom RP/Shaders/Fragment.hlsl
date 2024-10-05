@@ -3,11 +3,13 @@
 
 struct Fragment {
 	float2 positionSS;
+	float depth;//片元对应深度
 };
 
 Fragment GetFragment (float4 positionSS) {
 	Fragment f;
 	f.positionSS = positionSS.xy;
+	f.depth = positionSS.w;
 	return f;
 }
 
