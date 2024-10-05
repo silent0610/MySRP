@@ -7,7 +7,8 @@ using UnityEngine.Rendering;
 public class CustomLightEditor : LightEditor {
 	public override void OnInspectorGUI() { 
 		base.OnInspectorGUI();
-        RenderingLayerMaskDrawer.Draw(
+		//这里的settings是LightEditor的私有变量,存储了Light的
+		RenderingLayerMaskDrawer.Draw(
             settings.renderingLayerMask, renderingLayerMaskLabel
         );
         if (!settings.lightType.hasMultipleDifferentValues && (LightType)settings.lightType.enumValueIndex == LightType.Spot) {

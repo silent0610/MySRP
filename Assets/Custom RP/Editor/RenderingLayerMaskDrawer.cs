@@ -5,29 +5,30 @@ using UnityEngine.Rendering;
 [CustomPropertyDrawer(typeof(RenderingLayerMaskFieldAttribute))]
 public class RenderingLayerMaskDrawer : PropertyDrawer
 {
-    //ÓÃÓÚÔÚ Unity ±à¼­Æ÷µÄ×Ô¶¨ÒåÊôĞÔ½çÃæÖĞÏÔÊ¾Ò»¸öÓÃÓÚÑ¡Ôñ "Rendering Layer Mask" µÄ¿Ø¼ş¡£
-    //Rect position: Ö¸¶¨»æÖÆ¿Ø¼şµÄ¾ØĞÎÇøÓò¡£
-    //SerializedProperty property: ĞòÁĞ»¯ÊôĞÔ£¬Í¨³£ÓÃÓÚÓë Unity ±à¼­Æ÷ÖĞµÄÊı¾İ½øĞĞ°ó¶¨¡£
-    //GUIContent label: ¿Ø¼şµÄ±êÇ©£¬ÓÃÓÚÏÔÊ¾¿Ø¼şµÄÃèÊö»òÃû³Æ¡£
-    public static void Draw(
+	//å½“ å­—æ®µç±»å‹ ä¸º RenderingLayerMaskFieldAttribute,æ—¶,è°ƒç”¨OnGUIæ–¹æ³•è¿›è¡Œç»˜åˆ¶
+	//ç”¨äºåœ¨ Unity ç¼–è¾‘å™¨çš„è‡ªå®šä¹‰å±æ€§ç•Œé¢ä¸­æ˜¾ç¤ºä¸€ä¸ªç”¨äºé€‰æ‹© "Rendering Layer Mask" çš„æ§ä»¶ã€‚
+	//Rect position: æŒ‡å®šç»˜åˆ¶æ§ä»¶çš„çŸ©å½¢åŒºåŸŸã€‚
+	//SerializedProperty property: åºåˆ—åŒ–å±æ€§ï¼Œé€šå¸¸ç”¨äºä¸ Unity ç¼–è¾‘å™¨ä¸­çš„æ•°æ®è¿›è¡Œç»‘å®šã€‚
+	//GUIContent label: æ§ä»¶çš„æ ‡ç­¾ï¼Œç”¨äºæ˜¾ç¤ºæ§ä»¶çš„æè¿°æˆ–åç§°ã€‚
+	public static void Draw(
         Rect position, SerializedProperty property, GUIContent label
     )
     {
         //SerializedProperty property = settings.renderingLayerMask;
-        //¼ì²éµ±Ç°ÊôĞÔÊÇ·ñ¾ßÓĞ²»Í¬µÄÖµ£¨ÓÃÓÚ´¦Àí¶àÑ¡Çé¿ö
+        //æ£€æŸ¥å½“å‰å±æ€§æ˜¯å¦å…·æœ‰ä¸åŒçš„å€¼ï¼ˆç”¨äºå¤„ç†å¤šé€‰æƒ…å†µ
         EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
-        EditorGUI.BeginChangeCheck();
+        EditorGUI.BeginChangeCheck();//æ£€æµ‹GUIå˜åŠ¨
         int mask = property.intValue;
         bool isUint = property.type == "uint";
         if (isUint && mask == int.MaxValue)
         {
             mask = -1;
         }
-        mask = EditorGUI.MaskField( // Ê¹ÓÃ MaskField ·½·¨À´»æÖÆÒ»¸ö²ãÕÚÕÖÑ¡Ôñ¿Ø¼ş¡£Ñ¡ÏîÀ´×ÔÓÚµ±Ç°äÖÈ¾¹ÜÏßµÄ 
+        mask = EditorGUI.MaskField( // ä½¿ç”¨ MaskField æ–¹æ³•æ¥ç»˜åˆ¶ä¸€ä¸ªå±‚é®ç½©é€‰æ‹©æ§ä»¶ã€‚å…è®¸ç”¨æˆ·ä¿®æ”¹
             position, label, mask,
-            GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames
+            GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames//è°ƒç”¨å½“å‰å…‰çº¿å®šä¹‰çš„maskåç§°,å³åœ¨RPassetä¸­å®šä¹‰çš„
         );
-        if (EditorGUI.EndChangeCheck())//ÊÇ·ñ·¢ÉúÁË±ä»¯£¬Èç¹ûÓĞ±ä»¯£¬×îÖÕ»á¸üĞÂ property.intValue¡£
+        if (EditorGUI.EndChangeCheck())//æ˜¯å¦å‘ç”Ÿäº†å˜åŒ–ï¼Œå¦‚æœæœ‰å˜åŒ–ï¼Œæœ€ç»ˆä¼šæ›´æ–° property.intValueã€‚
         {
             property.intValue = isUint && mask == -1 ? int.MaxValue : mask;
         }
