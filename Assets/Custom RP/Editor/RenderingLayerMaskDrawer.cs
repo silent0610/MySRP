@@ -3,8 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [CustomPropertyDrawer(typeof(RenderingLayerMaskFieldAttribute))]
-public class RenderingLayerMaskDrawer : PropertyDrawer
-{
+public class RenderingLayerMaskDrawer : PropertyDrawer{
 	//当 字段类型 为 RenderingLayerMaskFieldAttribute,时,调用OnGUI方法进行绘制
 	//用于在 Unity 编辑器的自定义属性界面中显示一个用于选择 "Rendering Layer Mask" 的控件。
 	//Rect position: 指定绘制控件的矩形区域。
@@ -40,7 +39,7 @@ public class RenderingLayerMaskDrawer : PropertyDrawer
     }
     public override void OnGUI(
     Rect position, SerializedProperty property, GUIContent label
-)
+	)
     {
         Draw(position, property, label);
     }

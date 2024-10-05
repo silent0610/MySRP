@@ -11,10 +11,11 @@ public class CustomLightEditor : LightEditor {
 		RenderingLayerMaskDrawer.Draw(
             settings.renderingLayerMask, renderingLayerMaskLabel
         );
-        if (!settings.lightType.hasMultipleDifferentValues && (LightType)settings.lightType.enumValueIndex == LightType.Spot) {
+        if (!settings.lightType.hasMultipleDifferentValues && 
+			(LightType)settings.lightType.enumValueIndex == LightType.Spot) {
 			settings.DrawInnerAndOuterSpotAngle();
-			
 		}
+		settings.ApplyModifiedProperties();
 		var light = target as Light;
 		if (light.cullingMask != -1) {
 			EditorGUILayout.HelpBox(
@@ -24,8 +25,9 @@ public class CustomLightEditor : LightEditor {
 				MessageType.Warning
 			);
 		}
-		settings.ApplyModifiedProperties();
+		
 	}
-	static GUIContent renderingLayerMaskLabel = new GUIContent("Rendering Layer Mask", "Functional version of above property.");
+	static GUIContent renderingLayerMaskLabel = 
+		new GUIContent("Rendering Layer Mask", "Functional version of above property.");
 
 }

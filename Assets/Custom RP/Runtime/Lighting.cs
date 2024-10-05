@@ -145,7 +145,7 @@ public class Lighting {
 			otherLightSpotAngles[index] = new Vector4(0f, 1f);
 
 			Vector4 dirAndmask = Vector4.zero;
-			dirAndmask.w = light.renderingLayerMask;
+			dirAndmask.w = light.renderingLayerMask.ReinterpretAsFloat();
 			otherLightDirectionsAndMasks[index] = dirAndmask;
 		//Light light = visibleLight.light;
 			otherLightShadowData[index] = shadows.ReserveOtherShadows(light, visibleIndex);
@@ -157,7 +157,7 @@ public class Lighting {
 			position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
 			otherLightPositions[index] = position;
 			Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
-			dirAndMask.w = light.renderingLayerMask;
+			dirAndMask.w = light.renderingLayerMask.ReinterpretAsFloat();
 			otherLightDirectionsAndMasks[index] = dirAndMask;
 			//内角外角衰减计算
 
