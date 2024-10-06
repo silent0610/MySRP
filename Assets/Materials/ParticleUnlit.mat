@@ -12,7 +12,9 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _DISTORTION
   - _NEAR_FADE
+  - _SOFT_PARTICLES
   - _VERTEX_COLORS
   m_InvalidKeywords:
   - _SHADOWS_OFF
@@ -47,6 +49,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DistortionMap:
+        m_Texture: {fileID: 2800000, guid: 1a493d64b4ec08c4da902d521937491f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -73,6 +79,9 @@ Material:
     - _Clipping: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
+    - _Distortion: 1
+    - _DistortionBlend: 0.55
+    - _DistortionStrength: 0.02
     - _DstBlend: 10
     - _FlipbookBlending: 0
     - _GlossMapScale: 1
@@ -87,6 +96,9 @@ Material:
     - _Parallax: 0.02
     - _Shadows: 3
     - _SmoothnessTextureChannel: 0
+    - _SoftParticles: 1
+    - _SoftParticlesDistance: 0
+    - _SoftParticlesRange: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 5
     - _UVSec: 0

@@ -14,6 +14,11 @@ Shader "Custom RP/Particles/Unlit" {
 		_SoftParticlesDistance ("Soft Particles Distance", Range(0.0, 10.0)) = 0
 		_SoftParticlesRange ("Soft Particles Range", Range(0.01, 10.0)) = 1
 
+		[Toggle(_DISTORTION)] _Distortion ("Distortion", Float) = 0
+		[NoScaleOffset] _DistortionMap("Distortion Vectors", 2D) = "bumb" {}
+		_DistortionStrength("Distortion Strength", Range(0.0, 0.2)) = 0.1
+		_DistortionBlend("Distortion Blend", Range(0.0, 1.0)) = 1
+
 		_Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 		[Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
 		[KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
@@ -38,6 +43,7 @@ Shader "Custom RP/Particles/Unlit" {
 
 			HLSLPROGRAM
 			#pragma target 3.5
+			#pragma shader_feature _DISTORTION
 			#pragma shader_feature _SOFT_PARTICLES
 			#pragma shader_feature _NEAR_FADE
 			#pragma shader_feature _CLIPPING

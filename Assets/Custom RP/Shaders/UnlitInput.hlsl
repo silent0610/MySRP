@@ -4,8 +4,10 @@
 
 //shader(material)的纹理贴图由需要由 TEXTURE2D 声明到GPU
 
-TEXTURE2D(_BaseMap); 
+TEXTURE2D(_BaseMap);
+TEXTURE2D(_DistortionMap);
 SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_DistortionMap);//!!!,又不通用了
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)//shader(material)属性值由实例化缓冲区传递到GPU
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
@@ -14,6 +16,8 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)//shader(material)属性值由实
 	UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeRange)
 	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesDistance)
 	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesRange)
+	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionStrength)
+	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionBlend)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -24,7 +28,7 @@ struct InputConfig {
 	Fragment fragment;
 	float4 color;
 	float2 baseUV;
-	float3 flipbookUVB; //指示是否使用flipbook
+	float3 flipbookUVB; //指示是否使用flipbook 类似图集
 	bool flipbookBlending; 
 	bool nearFade;
 	bool softParticles;
@@ -42,6 +46,19 @@ InputConfig GetInputConfig (float4 positionSS,float2 baseUV) {
 	return c;
 }
 
+float2 GetDistortion (InputConfig c) {
+	float4 rawMap = SAMPLE_TEXTURE2D(_DistortionMap, sampler_DistortionMap, c.baseUV);
+	if (c.flipbookBlending) {
+		rawMap = lerp(
+			rawMap, SAMPLE_TEXTURE2D(_DistortionMap, sampler_DistortionMap, c.flipbookUVB.xy),
+			c.flipbookUVB.z
+		);
+	}
+	return DecodeNormal(rawMap, INPUT_PROP(_DistortionStrength)).xy;
+}
+float GetDistortionBlend (InputConfig c) {
+	return INPUT_PROP(_DistortionBlend);
+}
 float2 TransformBaseUV (float2 baseUV) {
 	float4 baseST = INPUT_PROP(_BaseMap_ST);
 	return baseUV * baseST.xy + baseST.zw;
@@ -81,7 +98,7 @@ float4 GetBase (InputConfig c) {
 	float4 baseColor = INPUT_PROP(_BaseColor);
 	return baseMap * baseColor * c.color; //乘顶点色?
 }
-
+///根据深度写入
 float GetFinalAlpha (float alpha) {
 	return INPUT_PROP(_ZWrite) ? 1.0 : alpha;
 }

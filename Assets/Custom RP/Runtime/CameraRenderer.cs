@@ -25,13 +25,15 @@ public partial class CameraRenderer {
 	static int
 		colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"), 
 		depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
+		colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
 		depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
-		sourceTextureId = Shader.PropertyToID("_SourceTexture"); //colorAttachment 保存的位置,使用别名可能是为了安全?
-
+		sourceTextureId = Shader.PropertyToID("_SourceTexture"), //相机shader使用的纹理
+		srcBlendId = Shader.PropertyToID("_CameraSrcBlend"),
+		dstBlendId = Shader.PropertyToID("_CameraDstBlend");
 
 	static CameraSettings defaultCameraSettings = new CameraSettings();//默认相机设置
 
-	bool useDepthTexture,useIntermediateBuffer;
+	bool useColorTexture, useDepthTexture,useIntermediateBuffer;
 
 	bool useHDR;
 
@@ -60,6 +62,19 @@ public partial class CameraRenderer {
 	/// 复制深度缓冲区
 	/// </summary>
 	void CopyAttachments() {
+		if (useColorTexture) {
+			buffer.GetTemporaryRT(
+				colorTextureId, camera.pixelWidth, camera.pixelHeight,
+				0, FilterMode.Bilinear, useHDR ?
+					RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
+			);
+			if (copyTextureSupported) {
+				buffer.CopyTexture(colorAttachmentId, colorTextureId);
+			}
+			else {
+				Draw(colorAttachmentId, colorTextureId);
+			}
+		}
 		if (useDepthTexture) {
 			buffer.GetTemporaryRT(
 				depthTextureId, camera.pixelWidth, camera.pixelHeight,
@@ -70,15 +85,18 @@ public partial class CameraRenderer {
 			}
 			else {
 				Draw(depthAttachmentId, depthTextureId,true);
-				buffer.SetRenderTarget( //Draw函数修改了当前渲染目标，所以需要重新设置
-					colorAttachmentId,
-					RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
-					depthAttachmentId,
-					RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
-				);
 			}
-			ExecuteBuffer();
+			
 		}
+		if (!copyTextureSupported) {
+			buffer.SetRenderTarget( //Draw函数修改了当前渲染目标，所以需要重新设置
+				colorAttachmentId,
+				RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+				depthAttachmentId,
+				RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
+			);
+		}
+		ExecuteBuffer();
 	}
 	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to,bool isDepth = false) {
 		buffer.SetGlobalTexture(sourceTextureId, from);
@@ -104,9 +122,11 @@ public partial class CameraRenderer {
 		//控制是否启用深度纹理
 		if (camera.cameraType == CameraType.Reflection) {
 			useDepthTexture = bufferSettings.copyDepthReflection;
+			useColorTexture = bufferSettings.copyColorReflection;
 		}
 		else {
 			useDepthTexture = bufferSettings.copyDepth && cameraSettings.copyDepth;//管线和相机都启用
+			useColorTexture = bufferSettings.copyColor && cameraSettings.copyColor;
 		}
 
 		if (cameraSettings.overridePostFX) { 
@@ -135,7 +155,7 @@ public partial class CameraRenderer {
 			postFXStack.Render(colorAttachmentId);
 		}
 		else if (useIntermediateBuffer) {
-			Draw(colorAttachmentId, BuiltinRenderTextureType.CameraTarget);
+			DrawFinal(cameraSettings.finalBlendMode);
 			ExecuteBuffer();
 		}
 		DrawGizmosAfterFX();
@@ -155,7 +175,7 @@ public partial class CameraRenderer {
 	void Setup() {
 		context.SetupCameraProperties(camera);
 		CameraClearFlags flags = camera.clearFlags;
-		useIntermediateBuffer = useDepthTexture || postFXStack.IsActive;
+		useIntermediateBuffer = useColorTexture||useDepthTexture || postFXStack.IsActive;
 		//获取中间帧缓冲区
 		if (useIntermediateBuffer) {
 			//为了防止随机结果，当堆栈处于活动状态时，始终清除深度和颜色。
@@ -183,6 +203,7 @@ public partial class CameraRenderer {
 		buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags <= CameraClearFlags.Color, flags == CameraClearFlags.Color ?
 				camera.backgroundColor.linear : Color.clear);
 		buffer.BeginSample(SampleName);
+		buffer.SetGlobalTexture(colorTextureId, missingTexture);
 		buffer.SetGlobalTexture(depthTextureId, missingTexture);
 		ExecuteBuffer();
 
@@ -236,10 +257,27 @@ public partial class CameraRenderer {
 			buffer.ReleaseTemporaryRT(colorAttachmentId);
 			buffer.ReleaseTemporaryRT(depthAttachmentId);
 
-			if (useDepthTexture) {
-				buffer.ReleaseTemporaryRT(depthTextureId);
+			if (useColorTexture || useDepthTexture) {
+				CopyAttachments();
 			}
 		}
 	}
-
+	static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
+	void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode) {
+		buffer.SetGlobalFloat(srcBlendId, (float)finalBlendMode.source);
+		buffer.SetGlobalFloat(dstBlendId, (float)finalBlendMode.destination);
+		buffer.SetGlobalTexture(sourceTextureId, colorAttachmentId);
+		buffer.SetRenderTarget(
+			BuiltinRenderTextureType.CameraTarget,
+			finalBlendMode.destination == BlendMode.Zero && camera.rect == fullViewRect ?
+				RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
+			RenderBufferStoreAction.Store
+		);
+		buffer.SetViewport(camera.pixelRect);
+		buffer.DrawProcedural(
+			Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3
+		);
+		buffer.SetGlobalFloat(srcBlendId, 1f);
+		buffer.SetGlobalFloat(dstBlendId, 0f);
+	}
 }
