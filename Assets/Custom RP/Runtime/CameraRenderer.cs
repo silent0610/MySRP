@@ -28,10 +28,7 @@ public partial class CameraRenderer {
 		depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
 		sourceTextureId = Shader.PropertyToID("_SourceTexture"); //colorAttachment 保存的位置,使用别名可能是为了安全?
 
-	//通过Shader.PropertyToID 就已经获取了shader中的属性ID,以及对应的数据保存位置,可以不需要在shader
-	//中声明,在cpu端仍能使用.但是如果想要在shader中使用,则需要在shader中声明.
-	//此外,如果这是纹理,需要在cpu中使用setglobaltexture方法,在shader中使用sampler2D才能对其进行采样
-	//但仍能绘制到屏幕上,因为这是一个渲染目标(被cpu控制)
+
 	static CameraSettings defaultCameraSettings = new CameraSettings();//默认相机设置
 
 	bool useDepthTexture,useIntermediateBuffer;
@@ -40,39 +37,61 @@ public partial class CameraRenderer {
 
 	Material material;
 
+	Texture2D missingTexture; //不存在的深度纹理
+
+	static bool copyTextureSupported = SystemInfo.copyTextureSupport > CopyTextureSupport.None;
+
 	public CameraRenderer(Shader shader) {
 		material = CoreUtils.CreateEngineMaterial(shader);
+		missingTexture = new Texture2D(1, 1) {
+			hideFlags = HideFlags.HideAndDontSave,
+			name = "Missing"
+		};
+		missingTexture.SetPixel(0, 0, Color.white * 0.5f);
+		missingTexture.Apply(true, true);
 	}
 
 	public void Dispose() {
 		CoreUtils.Destroy(material);
+		CoreUtils.Destroy(missingTexture);
 	}
 
 	/// <summary>
 	/// 复制深度缓冲区
 	/// </summary>
 	void CopyAttachments() {
-	if (useDepthTexture) {
-		buffer.GetTemporaryRT(
-			depthTextureId, camera.pixelWidth, camera.pixelHeight,
-			32, FilterMode.Point, RenderTextureFormat.Depth
-		);
-		buffer.CopyTexture(depthAttachmentId, depthTextureId);
-		ExecuteBuffer();
+		if (useDepthTexture) {
+			buffer.GetTemporaryRT(
+				depthTextureId, camera.pixelWidth, camera.pixelHeight,
+				32, FilterMode.Point, RenderTextureFormat.Depth
+			);
+			if (copyTextureSupported) {
+				buffer.CopyTexture(depthAttachmentId, depthTextureId);
+			}
+			else {
+				Draw(depthAttachmentId, depthTextureId,true);
+				buffer.SetRenderTarget( //Draw函数修改了当前渲染目标，所以需要重新设置
+					colorAttachmentId,
+					RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+					depthAttachmentId,
+					RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
+				);
+			}
+			ExecuteBuffer();
+		}
 	}
-}
-	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to) {
+	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to,bool isDepth = false) {
 		buffer.SetGlobalTexture(sourceTextureId, from);
 		buffer.SetRenderTarget(
 			to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
 		);
 		buffer.DrawProcedural(
-			Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3
+			Matrix4x4.identity, material, isDepth ? 1 : 0, MeshTopology.Triangles, 3
 		);
 		//material 对应的shader的 pass0
 	}
 
-	public void Render(ScriptableRenderContext context, Camera camera,bool allowHDR, 
+	public void Render(ScriptableRenderContext context, Camera camera,CameraBufferSettings bufferSettings, 
 		bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
 		ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution) {
 		this.context = context;
@@ -82,7 +101,13 @@ public partial class CameraRenderer {
 		CameraSettings cameraSettings =
 			crpCamera ? crpCamera.Settings : defaultCameraSettings;
 		
-		useDepthTexture = true;
+		//控制是否启用深度纹理
+		if (camera.cameraType == CameraType.Reflection) {
+			useDepthTexture = bufferSettings.copyDepthReflection;
+		}
+		else {
+			useDepthTexture = bufferSettings.copyDepth && cameraSettings.copyDepth;//管线和相机都启用
+		}
 
 		if (cameraSettings.overridePostFX) { 
 			postFXSettings = cameraSettings.postFXSettings;
@@ -92,7 +117,7 @@ public partial class CameraRenderer {
 		if (!Cull(shadowSettings.maxDistance)) {
 			return;
 		}
-		useHDR = allowHDR && camera.allowHDR;//管线允许HDR且相机允许HDR
+		useHDR = bufferSettings.allowHDR && camera.allowHDR; //管线允许HDR且相机允许HDR
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
 		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject,
@@ -158,6 +183,7 @@ public partial class CameraRenderer {
 		buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags <= CameraClearFlags.Color, flags == CameraClearFlags.Color ?
 				camera.backgroundColor.linear : Color.clear);
 		buffer.BeginSample(SampleName);
+		buffer.SetGlobalTexture(depthTextureId, missingTexture);
 		ExecuteBuffer();
 
 	}

@@ -19,5 +19,14 @@ Shader "Hidden/Custom RP/Camera Renderer" {
 				#pragma fragment CopyPassFragment
 			ENDHLSL
 		}
+		Pass {
+			Name "Copy Depth"
+
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment CopyDepthPassFragment
+			ENDHLSL
+		}
 	}
 }

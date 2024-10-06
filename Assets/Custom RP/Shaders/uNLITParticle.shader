@@ -10,6 +10,10 @@ Shader "Custom RP/Particles/Unlit" {
 		_NearFadeDistance ("Near Fade Distance", Range(0.0, 10.0)) = 1
 		_NearFadeRange ("Near Fade Range", Range(0.01, 10.0)) = 1
 
+		[Toggle(_SOFT_PARTICLES)] _SoftParticles ("Soft Particles", Float) = 0
+		_SoftParticlesDistance ("Soft Particles Distance", Range(0.0, 10.0)) = 0
+		_SoftParticlesRange ("Soft Particles Range", Range(0.01, 10.0)) = 1
+
 		_Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 		[Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
 		[KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
@@ -34,6 +38,7 @@ Shader "Custom RP/Particles/Unlit" {
 
 			HLSLPROGRAM
 			#pragma target 3.5
+			#pragma shader_feature _SOFT_PARTICLES
 			#pragma shader_feature _NEAR_FADE
 			#pragma shader_feature _CLIPPING
 			#pragma multi_compile_instancing

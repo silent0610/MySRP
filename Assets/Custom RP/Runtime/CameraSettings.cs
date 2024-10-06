@@ -9,6 +9,7 @@ public class CameraSettings {
 
 		public BlendMode source, destination;
 	}
+	public bool copyDepth = true;
 	[RenderingLayerMaskField]
     public int renderingLayerMask = -1;
 	public bool maskLights = false;

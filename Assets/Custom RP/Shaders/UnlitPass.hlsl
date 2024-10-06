@@ -47,6 +47,7 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
 
 	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+	//return float4((config.fragment.depth.xxx-config.fragment.bufferDepth.xxx) , 1.0);
 	#if defined(_VERTEX_COLORS)
 		config.color = input.color;
 	#endif
@@ -56,6 +57,9 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 	#endif
 	#if defined(_NEAR_FADE)
 		config.nearFade = true;
+	#endif
+	#if defined(_SOFT_PARTICLES)
+		config.softParticles = true;
 	#endif
 	float4 base = GetBase(config);
 	#if defined(_CLIPPING)
