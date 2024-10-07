@@ -21,6 +21,9 @@ public class PostFXSettings : ScriptableObject {
 
 	[Serializable]
 	public struct BloomSettings {
+
+		public bool ignoreRenderScale;
+
 		[Range(0f, 16f)]
 		public int maxIterations ;
 		[Min(1f)]

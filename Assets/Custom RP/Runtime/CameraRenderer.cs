@@ -12,7 +12,7 @@ public partial class CameraRenderer {
 	};
 	CullingResults cullingResults;
 	// 要渲染的Pass 的Tag
-	static ShaderTagId 
+	static ShaderTagId
 		unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
 		litShaderTagId = new ShaderTagId("CustomLit");
 
@@ -23,7 +23,8 @@ public partial class CameraRenderer {
 	//static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
 	//分离帧缓冲区
 	static int
-		colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"), 
+		bufferSizeId = Shader.PropertyToID("_CameraBufferSize"),
+		colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
 		depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
 		colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
 		depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
@@ -33,15 +34,19 @@ public partial class CameraRenderer {
 
 	static CameraSettings defaultCameraSettings = new CameraSettings();//默认相机设置
 
-	bool useColorTexture, useDepthTexture,useIntermediateBuffer;
+	bool useColorTexture, useDepthTexture, useIntermediateBuffer;
 
-	bool useHDR;
+	bool useHDR, useScaledRendering;
+
+	Vector2Int bufferSize;
 
 	Material material;
 
 	Texture2D missingTexture; //不存在的深度纹理
 
 	static bool copyTextureSupported = SystemInfo.copyTextureSupport > CopyTextureSupport.None;
+
+	public const float renderScaleMin = 0.1f, renderScaleMax = 2f;
 
 	public CameraRenderer(Shader shader) {
 		material = CoreUtils.CreateEngineMaterial(shader);
@@ -64,7 +69,7 @@ public partial class CameraRenderer {
 	void CopyAttachments() {
 		if (useColorTexture) {
 			buffer.GetTemporaryRT(
-				colorTextureId, camera.pixelWidth, camera.pixelHeight,
+				colorTextureId, bufferSize.x, bufferSize.y,
 				0, FilterMode.Bilinear, useHDR ?
 					RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
 			);
@@ -77,16 +82,16 @@ public partial class CameraRenderer {
 		}
 		if (useDepthTexture) {
 			buffer.GetTemporaryRT(
-				depthTextureId, camera.pixelWidth, camera.pixelHeight,
+				depthTextureId, bufferSize.x, bufferSize.y,
 				32, FilterMode.Point, RenderTextureFormat.Depth
 			);
 			if (copyTextureSupported) {
 				buffer.CopyTexture(depthAttachmentId, depthTextureId);
 			}
 			else {
-				Draw(depthAttachmentId, depthTextureId,true);
+				Draw(depthAttachmentId, depthTextureId, true);
 			}
-			
+
 		}
 		if (!copyTextureSupported) {
 			buffer.SetRenderTarget( //Draw函数修改了当前渲染目标，所以需要重新设置
@@ -98,7 +103,7 @@ public partial class CameraRenderer {
 		}
 		ExecuteBuffer();
 	}
-	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to,bool isDepth = false) {
+	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, bool isDepth = false) {
 		buffer.SetGlobalTexture(sourceTextureId, from);
 		buffer.SetRenderTarget(
 			to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
@@ -109,8 +114,8 @@ public partial class CameraRenderer {
 		//material 对应的shader的 pass0
 	}
 
-	public void Render(ScriptableRenderContext context, Camera camera,CameraBufferSettings bufferSettings, 
-		bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
+	public void Render(ScriptableRenderContext context, Camera camera, CameraBufferSettings bufferSettings,
+		bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
 		ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution) {
 		this.context = context;
 		this.camera = camera;
@@ -118,7 +123,7 @@ public partial class CameraRenderer {
 		var crpCamera = camera.GetComponent<CustomRenderPipelineCamera>();
 		CameraSettings cameraSettings =
 			crpCamera ? crpCamera.Settings : defaultCameraSettings;
-		
+
 		//控制是否启用深度纹理
 		if (camera.cameraType == CameraType.Reflection) {
 			useDepthTexture = bufferSettings.copyDepthReflection;
@@ -129,21 +134,40 @@ public partial class CameraRenderer {
 			useColorTexture = bufferSettings.copyColor && cameraSettings.copyColor;
 		}
 
-		if (cameraSettings.overridePostFX) { 
+		if (cameraSettings.overridePostFX) {
 			postFXSettings = cameraSettings.postFXSettings;
 		}
+
+		float renderScale = cameraSettings.GetRenderScale(bufferSettings.renderScale);
+		useScaledRendering = renderScale < 0.99f || renderScale > 1.01f;
 		PrepareBuffer();
 		PrepareForSceneWindow();
 		if (!Cull(shadowSettings.maxDistance)) {
 			return;
 		}
 		useHDR = bufferSettings.allowHDR && camera.allowHDR; //管线允许HDR且相机允许HDR
+		//尺寸缩放
+		if (useScaledRendering) {
+			renderScale = Mathf.Clamp(renderScale, 0.1f, 2f);
+			bufferSize.x = (int)(camera.pixelWidth * renderScale);
+			bufferSize.y = (int)(camera.pixelHeight * renderScale);
+		}
+		else {
+			bufferSize.x = camera.pixelWidth;
+			bufferSize.y = camera.pixelHeight;
+		}
 		buffer.BeginSample(SampleName);
+		buffer.SetGlobalVector(bufferSizeId, new Vector4(
+			1f / bufferSize.x, 1f / bufferSize.y,
+			bufferSize.x, bufferSize.y
+		));
 		ExecuteBuffer();
+
+
 		lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject,
-            cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
-		postFXStack.Setup(context, camera, postFXSettings, useHDR, 
-			colorLUTResolution, cameraSettings.finalBlendMode);
+			cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+		postFXStack.Setup(context, camera, bufferSize, postFXSettings, useHDR,
+			colorLUTResolution, cameraSettings.finalBlendMode, bufferSettings.bicubicRescaling);
 		buffer.EndSample(SampleName);
 		Setup();
 		DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject,
@@ -175,20 +199,20 @@ public partial class CameraRenderer {
 	void Setup() {
 		context.SetupCameraProperties(camera);
 		CameraClearFlags flags = camera.clearFlags;
-		useIntermediateBuffer = useColorTexture||useDepthTexture || postFXStack.IsActive;
+		useIntermediateBuffer = useScaledRendering || useColorTexture || useDepthTexture || postFXStack.IsActive;
 		//获取中间帧缓冲区
-		if (useIntermediateBuffer) {
-			//为了防止随机结果，当堆栈处于活动状态时，始终清除深度和颜色。
+		if (useIntermediateBuffer) { //如果使用,则获取分离帧缓冲区
+									 //为了防止随机结果，当堆栈处于活动状态时，始终清除深度和颜色。
 			if (flags > CameraClearFlags.Color) {
 				flags = CameraClearFlags.Color;
 			}
-			
+
 			buffer.GetTemporaryRT(
-				colorAttachmentId, camera.pixelWidth, camera.pixelHeight,
-				0, FilterMode.Bilinear, useHDR?RenderTextureFormat.DefaultHDR:RenderTextureFormat.Default
+				colorAttachmentId, bufferSize.x, bufferSize.y,
+				0, FilterMode.Bilinear, useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
 			);
 			buffer.GetTemporaryRT(
-				depthAttachmentId, camera.pixelWidth, camera.pixelHeight,
+				depthAttachmentId, bufferSize.x,bufferSize.y,
 				32, FilterMode.Point, RenderTextureFormat.Depth
 			);
 			buffer.SetRenderTarget(//将中间帧缓冲区设置为当前渲染目标
@@ -218,7 +242,7 @@ public partial class CameraRenderer {
 		buffer.Clear();
 	}
 	//画出可见物体
-	void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, 
+	void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing,
 		bool useLightsPerObject, int renderingLayerMask) {
 		PerObjectData lightsPerObjectFlags = useLightsPerObject ?
 		PerObjectData.LightData | PerObjectData.LightIndices :
@@ -237,10 +261,10 @@ public partial class CameraRenderer {
 		};
 		//设置要渲染的Pass 即CusotmLit
 		drawingSettings.SetShaderPassName(1, litShaderTagId);
-        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque,
-            renderingLayerMask: (uint)renderingLayerMask
-        );
-        context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+		var filteringSettings = new FilteringSettings(RenderQueueRange.opaque,
+			renderingLayerMask: (uint)renderingLayerMask
+		);
+		context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
 		context.DrawSkybox(camera);
 
 		CopyAttachments();
